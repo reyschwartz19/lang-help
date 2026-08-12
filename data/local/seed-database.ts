@@ -1,5 +1,5 @@
 import phraseBankSeed from '@/data/content/phrase-bank.json';
-import { db } from '@/data/local/database';
+import { db, type PhraseBank } from '@/data/local/database';
 import { bundledContentRelease } from '@/lib/content/content-release';
 
 export async function ensureSeeded() {
@@ -13,38 +13,33 @@ export async function ensureSeeded() {
     await db.contentCacheMetadata.put({ key: 'active-release', releaseVersion: bundledContentRelease.releaseVersion, fetchedAt: new Date(), source: 'bundled' });
   });
 
-  const existingPhraseBank = await db.phraseBank.count();
-  const phraseCardCount = await db.cards.filter((card) => card.type === 'phrase').count();
+  await db.transaction('rw', db.phraseBank, db.cards, async () => {
+    const existingPhrases = new Map((await db.phraseBank.toArray()).map((phrase) => [phrase.id, phrase]));
+    const existingCards = new Map(
+      (await db.cards.filter((card) => card.type === 'phrase').toArray()).map((card) => [card.sentenceId, card]),
+    );
+    const now = new Date();
+    const curatedPhrases = phraseBankSeed as Array<Omit<PhraseBank, 'cardId'>>;
+    const phraseRows: PhraseBank[] = curatedPhrases.map((phrase) => ({
+      ...phrase,
+      cardId: existingPhrases.get(phrase.id)?.cardId ?? `${phrase.id}-card`,
+    }));
 
-  if (existingPhraseBank === 0 || phraseCardCount === 0) {
-    const phraseRows = existingPhraseBank === 0 ? phraseBankSeed.map((phrase) => ({ ...phrase, cardId: null })) : await db.phraseBank.toArray();
+    await db.phraseBank.bulkPut(phraseRows);
 
-    if (existingPhraseBank === 0) {
-      await db.phraseBank.bulkPut(phraseRows);
-    }
-
-    const phraseCards = phraseRows.map((phrase) => ({
+    const phraseCards = phraseRows.filter((phrase) => !existingCards.has(phrase.id)).map((phrase) => ({
       id: `${phrase.id}-card`,
       sentenceId: phrase.id,
       type: 'phrase' as const,
-      dueDate: new Date(),
+      dueDate: new Date(now.getTime() + (phrase.priority === 1 ? 0 : phrase.priority === 2 ? 7 : 21) * 86_400_000),
       stability: 0,
       difficulty: 0,
       reps: 0,
       lapses: 0,
       lastReviewedAt: null,
-      createdAt: new Date(),
+      createdAt: now,
     }));
 
     await db.cards.bulkPut(phraseCards);
-
-    await Promise.all(
-      phraseCards.map(async (card) => {
-        const phrase = phraseRows.find((entry) => entry.id === card.sentenceId);
-        if (!phrase) return;
-
-        await db.phraseBank.update(phrase.id, { cardId: card.id });
-      })
-    );
-  }
+  });
 }

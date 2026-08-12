@@ -12,12 +12,15 @@ import { putCardLocally, deleteCardLocally, putReadingProgressLocally } from '@/
 import { captureLearnerEvent } from '@/lib/learning/events'
 import { cacheAheadContent } from '@/lib/content/cache-content'
 import { advanceReadingProgress, isReadingProgressDue } from '@/lib/reader/resurfacing'
+import { selectAdaptiveStory, type DifficultySignal } from '@/lib/learning/adaptive-selector'
+import { findRepeatedGrammarPatterns } from '@/lib/learning/grammar-patterns'
 
 export default function ReaderPage() {
   const [activeSentenceId, setActiveSentenceId] = useState<string | null>(null);
   const [spokenToggles, setSpokenToggles] = useState<Record<string, boolean>>({});
   const [loopingSentenceId, setLoopingSentenceId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [rated, setRated] = useState(false);
   const loopRef = useRef<string | null>(null);
 
   // Seed for testing if DB is empty
@@ -28,13 +31,16 @@ export default function ReaderPage() {
 
   const storyData = useLiveQuery(async () => {
     const now = new Date();
-    const candidates = await db.readingProgress.filter(p => p.status !== 'mastered').toArray();
-    const progress = candidates.find((item) => isReadingProgressDue({ ...item, lastSeenAt: new Date(item.lastSeenAt), nextResurfaceAt: new Date(item.nextResurfaceAt) }, now));
+    const candidates = (await db.readingProgress.filter(p => p.status !== 'mastered').toArray()).map((item) => ({ ...item, lastSeenAt: new Date(item.lastSeenAt), nextResurfaceAt: new Date(item.nextResurfaceAt) }));
+    const stories = await db.stories.toArray();
+    const events = await db.learnerEvents.orderBy('occurredAt').reverse().limit(40).toArray();
+    const selection = selectAdaptiveStory(stories, candidates.filter((item) => isReadingProgressDue(item, now)), events, now);
+    const progress = selection?.progress;
     let story: Story | undefined;
     const progressRec: ReadingProgress | undefined = progress;
 
     if (progress) {
-      story = await db.stories.get(progress.storyId);
+      story = selection?.story;
     } else {
       return null;
     }
@@ -48,7 +54,7 @@ export default function ReaderPage() {
     const savedCards = await db.cards.where('type').equals('sentence').toArray();
     const savedSentenceIds = new Set(savedCards.map(c => c.sentenceId));
 
-    return { story, progress: progressRec, sentences: orderedSentences, savedSentenceIds };
+    return { story, progress: progressRec, sentences: orderedSentences, savedSentenceIds, decision: selection?.decision };
   });
 
   if (storyData === undefined) {
@@ -65,7 +71,8 @@ export default function ReaderPage() {
     return <AppShell title="Reading practice"><ScreenCard><p className="eyebrow">NOT DUE YET</p><h2 className="mt-2 text-xl font-semibold">Your completed stories are resting.</h2><p className="screen-copy">Return when the next listen-only or reread session is due. Bundled stories remain cached offline.</p>{feedback && <p role="alert" className="mt-3 text-sm text-red-700">{feedback}</p>}</ScreenCard></AppShell>
   }
 
-  const { story, progress, sentences, savedSentenceIds } = storyData;
+  const { story, progress, sentences, savedSentenceIds, decision } = storyData;
+  const grammarPatterns = findRepeatedGrammarPatterns(sentences);
 
   const activeSentence = activeSentenceId ? sentences.find(s => s.id === activeSentenceId) : null;
   const isSaved = activeSentenceId ? savedSentenceIds.has(activeSentenceId) : false;
@@ -75,14 +82,21 @@ export default function ReaderPage() {
     setFeedback(null);
     try {
       await playAudio(text, rate);
-      await captureLearnerEvent('audio_played', { entityId: sentence.id });
+      const estimatedSeconds = Math.max(1, Math.round(text.trim().split(/\s+/).length / (2.5 * rate)));
+      await captureLearnerEvent('audio_played', { entityId: sentence.id, durationSeconds: estimatedSeconds });
       if (loopRef.current === sentence.id) await speak(sentence, rate);
     } catch (reason) { setLoopingSentenceId(null); setFeedback(reason instanceof Error ? reason.message : 'Audio playback failed.'); }
   };
 
   const handleSentenceClick = (sentence: Sentence) => {
     setActiveSentenceId(sentence.id);
+    void captureLearnerEvent('definition_viewed', { entityId: sentence.id, metadata: { target: sentence.targetText ?? 'sentence' } });
     void speak(sentence);
+  };
+
+  const reportDifficulty = async (rating: DifficultySignal) => {
+    await captureLearnerEvent('passage_difficulty', { entityId: story.id, metadata: { rating, difficulty: story.difficulty } });
+    setRated(true);
   };
 
   const handleToggleSpoken = (sentenceId: string) => {
@@ -133,6 +147,7 @@ export default function ReaderPage() {
             </div>
             <h2>{story.title}</h2>
             <p className="reader-meta">Difficulty {story.difficulty.toFixed(1)} · Everyday life</p>
+            <p className="mt-2 text-xs text-slate-500" title={decision?.reason}>{decision?.reason}</p>
 
             <div className="reader-text flex flex-col gap-4 mt-6">
               {sentences.map(sentence => {
@@ -171,7 +186,10 @@ export default function ReaderPage() {
               </button>
             </div>
             {feedback && <p role="status" className="mt-3 text-center text-sm text-slate-600">{feedback}</p>}
+            <fieldset className="mt-5 border-0 text-center" disabled={rated}><legend className="mb-2 w-full text-sm font-semibold">How did this passage feel?</legend><div className="flex flex-wrap justify-center gap-2">{(['too_easy', 'just_right', 'too_hard'] as const).map((value) => <button type="button" className="pill-button" key={value} onClick={() => void reportDifficulty(value)}>{value === 'too_easy' ? 'Too easy' : value === 'just_right' ? 'Just right' : 'Too hard'}</button>)}</div>{rated && <p role="status" className="mt-2 text-xs text-slate-500">Difficulty saved for future selections.</p>}</fieldset>
           </ScreenCard>
+
+          {grammarPatterns.length > 0 && <ScreenCard><p className="eyebrow">PATTERNS IN THIS PASSAGE</p>{grammarPatterns.map((pattern) => <details className="mt-3 rounded-xl border border-slate-200 p-3" key={pattern.id}><summary className="cursor-pointer font-semibold">{pattern.title}</summary><p className="mt-2 text-sm text-slate-600">{pattern.summary}</p></details>)}</ScreenCard>}
 
           <Link href="/" className="text-button mt-4 inline-flex items-center gap-2 text-slate-500 hover:text-slate-800">
             <ArrowLeft size={15} /> Back home

@@ -68,9 +68,9 @@ export function applyReviewGrade(card: ReviewCard, grade: ReviewGrade) {
   }
 }
 
-export function getReviewQueue(cards: ReviewCard[]) {
+export function getReviewQueue(cards: ReviewCard[], now = new Date()) {
   return cards
-    .filter((card) => new Date(card.dueDate) <= new Date())
+    .filter((card) => new Date(card.dueDate) <= now)
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
 }
 

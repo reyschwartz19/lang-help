@@ -1,16 +1,18 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, Check, Search, Volume2 } from 'lucide-react'
+import { Search, Volume2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { AppShell, ScreenCard, ScreenHeading } from '@/components/layout/app-shell'
-import { db, type Card, type PhraseBank } from '@/data/local/database'
+import { db, type PhraseBank } from '@/data/local/database'
 import { ensureSeeded } from '@/data/local/seed-database'
 import { playAudio } from '@/lib/audio/speech-synthesis'
-import { applyReviewGrade, getReviewQueue, reviewGrades, type ReviewGrade } from '@/lib/review/fsrs-scheduler'
-
-type PhraseReviewRow = Card & { phrase: PhraseBank | null }
+import { captureLearnerEvent } from '@/lib/learning/events'
+import { applyReviewGrade, type ReviewGrade } from '@/lib/review/fsrs-scheduler'
+import { getPhraseReviewQueue } from '@/data/local/learning-service'
+import { ReviewSurface } from '@/components/review/review-surface'
+import { AsyncState } from '@/components/ui/async-state'
 
 const categoryTone: Record<string, string> = {
   greeting: 'coral',
@@ -19,63 +21,13 @@ const categoryTone: Record<string, string> = {
   opinion: 'coral',
 }
 
-function PhraseFlashcard({
-  phrase,
-  isRevealed,
-  onReveal,
-  onPlay,
-  onGrade,
-}: {
-  phrase: PhraseBank
-  isRevealed: boolean
-  onReveal: () => void
-  onPlay: () => void
-  onGrade: (grade: ReviewGrade) => void
-}) {
-  return (
-    <>
-      <div className="flashcard">
-        <p className="eyebrow">{isRevealed ? 'ENGLISH' : 'FRENCH'}</p>
-
-        {isRevealed ? (
-          <div className="answer">
-            <strong>{phrase.english}</strong>
-            <span>{phrase.french}</span>
-          </div>
-        ) : (
-          <>
-            <h2>{phrase.french}</h2>
-            <p className="text-sm text-slate-500 mt-2">
-              Hear it once, then say it out loud before you reveal the answer.
-            </p>
-          </>
-        )}
-
-        <button className="sound-button" aria-label="Listen to review phrase" onClick={onPlay}>
-          <Volume2 size={20} />
-        </button>
-      </div>
-
-      <button className="secondary-button full" onClick={onReveal}>
-        {isRevealed ? 'Hide answer' : 'Reveal answer'} <ArrowRight size={16} />
-      </button>
-
-      {isRevealed && (
-        <div className="review-actions">
-          {reviewGrades.map(({ key, label }, index) => (
-            <button
-              key={key}
-              className={`pill-button ${index === 2 || index === 3 ? 'primary-pill' : ''}`}
-              onClick={() => onGrade(key)}
-            >
-              {index === 0 && <Check size={16} />}
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-    </>
-  )
+const categoryLabels: Record<string, string> = {
+  greeting: 'Greetings & farewells', buying_time: 'Buying time', repair: 'Conversation repair',
+  reactions: 'Reactions & acknowledgement', opinion: 'Opinions & agreement', questions: 'Questions & follow-ups',
+  connecting: 'Connecting ideas', self: 'Talking about yourself', routines: 'Routines & experiences',
+  plans: 'Plans, wants & ability', time_quantity: 'Time, frequency & quantity', requests: 'Requests, offers & permission',
+  food_shopping: 'Food, cafés & shopping', transport: 'Transport & directions', work_study: 'Work & university',
+  social: 'Social plans',
 }
 
 export default function PhrasesPage() {
@@ -88,7 +40,8 @@ export default function PhrasesPage() {
   }, [])
 
   const phraseBank = useLiveQuery(async () => {
-    return (await db.phraseBank.orderBy('category').toArray()) as PhraseBank[]
+    const phrases = (await db.phraseBank.toArray()) as PhraseBank[]
+    return phrases.sort((a, b) => a.priority - b.priority || a.level.localeCompare(b.level) || a.category.localeCompare(b.category))
   }, [])
 
   const phraseGroups = useMemo(() => {
@@ -102,7 +55,8 @@ export default function PhrasesPage() {
     }
 
     return Array.from(groups.entries()).map(([label, items]) => ({
-      label,
+      label: categoryLabels[label] ?? label,
+      category: label,
       tone: categoryTone[label] ?? 'coral',
       phrases: items,
     }))
@@ -120,7 +74,8 @@ export default function PhrasesPage() {
           return (
             phrase.french.toLowerCase().includes(normalized) ||
             phrase.english.toLowerCase().includes(normalized) ||
-            group.label.toLowerCase().includes(normalized)
+            group.label.toLowerCase().includes(normalized) ||
+            phrase.level.toLowerCase().includes(normalized)
           )
         }),
       }))
@@ -128,25 +83,11 @@ export default function PhrasesPage() {
   }, [query, phraseGroups])
 
   const queue = useLiveQuery(async () => {
-    const rows = await db.cards.filter((card) => card.type === 'phrase').toArray()
-    const dueCards = getReviewQueue(rows)
-
-    if (dueCards.length === 0) {
-      return [] as PhraseReviewRow[]
-    }
-
-    const phraseIds = [...new Set(dueCards.map((card) => card.sentenceId))]
-    const phrases = await db.phraseBank.where('id').anyOf(phraseIds).toArray()
-    const phraseMap = new Map(phrases.map((phrase) => [phrase.id, phrase]))
-
-    return dueCards.map((card) => ({
-      ...card,
-      phrase: phraseMap.get(card.sentenceId) ?? null,
-    }))
+    return getPhraseReviewQueue()
   }, []) ?? []
 
   const currentItem = queue[activeIndex] ?? null
-  const currentPhrase = currentItem?.phrase ?? null
+  const currentPhrase = currentItem?.content ?? null
 
   useEffect(() => {
     setIsRevealed(false)
@@ -167,6 +108,11 @@ export default function PhrasesPage() {
 
     const { card: updatedCard } = applyReviewGrade(currentItem, grade)
     await db.cards.put(updatedCard)
+    await captureLearnerEvent('review_graded', {
+      entityId: currentPhrase?.id ?? currentItem.sentenceId,
+      grade,
+      metadata: { contentType: 'phrase' },
+    })
 
     setIsRevealed(false)
     setActiveIndex((previous) => {
@@ -190,13 +136,7 @@ export default function PhrasesPage() {
 
         <ScreenCard className="review-card">
           {!currentItem || !currentPhrase ? (
-            <div className="flex min-h-[220px] flex-col items-center justify-center text-center gap-4 px-6">
-              <p className="eyebrow">READY WHEN YOU ARE</p>
-              <h3 className="text-2xl font-semibold text-slate-800">No phrase cards due yet.</h3>
-              <p className="max-w-sm text-sm text-slate-500">
-                Browse your phrase bank and keep reviewing once a phrase is ready.
-              </p>
-            </div>
+            <AsyncState kind="empty" title="No phrase cards due yet" detail="Browse your phrase bank and return when a phrase is ready." />
           ) : (
             <>
               <div className="review-progress">
@@ -209,9 +149,12 @@ export default function PhrasesPage() {
                 <span style={{ width: `${((activeIndex + 1) / queue.length) * 100}%` }} />
               </div>
 
-              <PhraseFlashcard
-                phrase={currentPhrase}
-                isRevealed={isRevealed}
+              <ReviewSurface
+                label="French phrase"
+                answer={currentPhrase.french}
+                translation={currentPhrase.english}
+                front={<><h2>{currentPhrase.french}</h2><p className="mt-2 text-sm text-muted-foreground">Hear it once, then say it out loud before you reveal the answer.</p></>}
+                revealed={isRevealed}
                 onReveal={() => setIsRevealed((value) => !value)}
                 onPlay={handlePlay}
                 onGrade={handleGrade}
@@ -241,7 +184,7 @@ export default function PhrasesPage() {
                 <ScreenCard className={`phrase-row ${categoryTone[phrase.category] ?? 'coral'}`} key={phrase.id}>
                   <div>
                     <strong>{phrase.french}</strong>
-                    <span>{phrase.english}</span>
+                    <span>{phrase.english} · {phrase.level} · Priority {phrase.priority}</span>
                   </div>
 
                   <div className="phrase-row-actions">

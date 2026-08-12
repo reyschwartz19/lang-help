@@ -1,4 +1,4 @@
-import { db, type Card, type LearnerRecordType, type ReadingProgress } from '@/data/local/database'
+import { db, type Card, type LearnerEvent, type LearnerRecordType, type ReadingProgress } from '@/data/local/database'
 
 function serialize(value: unknown): Record<string, unknown> {
   return JSON.parse(JSON.stringify(value)) as Record<string, unknown>
@@ -21,3 +21,6 @@ export async function putReadingProgressLocally(progress: ReadingProgress) {
   await db.transaction('rw', db.readingProgress, db.syncOutbox, db.syncMetadata, async () => { await db.readingProgress.put(progress); await enqueue('READING_PROGRESS', progress.storyId, progress) })
 }
 
+export async function putLearnerEventLocally(event: LearnerEvent) {
+  await db.transaction('rw', db.learnerEvents, db.syncOutbox, db.syncMetadata, async () => { await db.learnerEvents.put(event); await enqueue('LEARNER_EVENT', event.id, event) })
+}

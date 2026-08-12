@@ -6,7 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 
 import { AppShell, ScreenCard, ScreenHeading } from '@/components/layout/app-shell'
 import { db } from '@/data/local/database'
-import { buildPromptTemplate, scenarioCategories, type ScenarioCategory } from '@/lib/handoff/prompt-template'
+import { buildPromptTemplate, scenarioCategories, type PromptItem, type ScenarioCategory } from '@/lib/handoff/prompt-template'
 
 export default function HandoffPage() {
   const [selectedCategory, setSelectedCategory] = useState<ScenarioCategory>('casual')
@@ -16,10 +16,26 @@ export default function HandoffPage() {
   const userStats = useLiveQuery(() => db.userStats.toCollection().first(), [])
   const practicedItems = useLiveQuery(async () => {
     const events = await db.learnerEvents.where('type').anyOf(['sentence_mined', 'review_graded']).reverse().sortBy('occurredAt')
-    const sentenceIds = [...new Set(events.map(({ entityId }) => entityId).filter((id): id is string => Boolean(id)))].slice(0, 6)
-    const sentences = await db.sentences.where('id').anyOf(sentenceIds).toArray()
-    if (sentences.length) return sentences.map((sentence) => ({ text: sentence.targetText ?? sentence.french, type: 'sentence' as const, category: 'recent reading' }))
-    return [] as Array<{ text: string; type: 'sentence'; category: string }>
+    const ids = [...new Set(events.map(({ entityId }) => entityId).filter((id): id is string => Boolean(id)))].slice(0, 12)
+    if (ids.length === 0) return []
+
+    const [sentences, phrases] = await Promise.all([
+      db.sentences.where('id').anyOf(ids).toArray(),
+      db.phraseBank.where('id').anyOf(ids).toArray(),
+    ])
+    const sentenceMap = new Map(sentences.map((sentence) => [sentence.id, sentence]))
+    const phraseMap = new Map(phrases.map((phrase) => [phrase.id, phrase]))
+
+    return ids.reduce<PromptItem[]>((items, id) => {
+      const sentence = sentenceMap.get(id)
+      if (sentence) {
+        items.push({ text: sentence.targetText ?? sentence.french, type: 'sentence', category: 'recent reading' })
+        return items
+      }
+      const phrase = phraseMap.get(id)
+      if (phrase) items.push({ text: phrase.french, type: 'phrase', category: phrase.category })
+      return items
+    }, []).slice(0, 6)
   }, [])
 
   const recentItems = useMemo(
@@ -53,8 +69,8 @@ export default function HandoffPage() {
       <div className="screen-stack">
         <ScreenCard>
           <div className="flex flex-col gap-5">
-            <div className="flex items-center gap-3 text-[#5267da]">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e7ecff]">
+            <div className="flex items-center gap-3 text-primary">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
                 <MessageSquareText size={18} />
               </div>
               <div>
@@ -74,8 +90,8 @@ export default function HandoffPage() {
                   type="button"
                   className={`rounded-full border px-3 py-2 text-[11px] font-bold transition ${
                     selectedCategory === option.id
-                      ? 'border-[#5267da] bg-[#5267da] text-white'
-                      : 'border-[#dfe6f5] bg-white text-slate-600'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border bg-card text-muted-foreground'
                   }`}
                   onClick={() => setSelectedCategory(option.id)}
                 >
@@ -98,7 +114,7 @@ export default function HandoffPage() {
           <textarea
             readOnly
             value={promptText}
-            className="min-h-[340px] w-full resize-none rounded-2xl border border-[#e2e8f0] bg-slate-50 p-4 text-[13px] leading-6 text-slate-700 outline-none"
+            className="min-h-[340px] w-full resize-none rounded-2xl border border-border bg-muted p-4 text-[13px] leading-6 text-foreground outline-none"
             aria-label="Generated chat prompt"
           />
         </ScreenCard>

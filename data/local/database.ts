@@ -42,6 +42,8 @@ export interface PhraseBank {
   french: string;
   english: string;
   category: 'greeting' | 'buying_time' | 'repair' | 'opinion' | string;
+  level: 'A1' | 'A2';
+  priority: 1 | 2 | 3;
   cardId: string | null;
 }
 
@@ -94,7 +96,7 @@ export interface SyncOutboxItem {
   nextAttemptAt: Date;
 }
 
-export type LearnerEventType = 'story_completed' | 'sentence_mined' | 'review_graded' | 'speech_completed' | 'audio_played' | 'definition_viewed';
+export type LearnerEventType = 'story_completed' | 'sentence_mined' | 'review_graded' | 'speech_completed' | 'audio_played' | 'definition_viewed' | 'passage_difficulty';
 
 export interface LearnerEvent {
   id: string;
@@ -143,6 +145,15 @@ db.version(2).stores({
 db.version(3).stores({
   sentences: 'id, difficulty, cefrLevel, source', stories: 'id, difficulty', cards: 'id, sentenceId, type, dueDate',
   phraseBank: 'id, category, cardId', readingProgress: 'storyId, status, nextResurfaceAt',
+  speakingSessions: 'id, scenarioId, completedAt', userStats: 'id', syncMetadata: 'key',
+  contentCacheMetadata: 'key, releaseVersion, fetchedAt, source',
+  syncOutbox: 'mutationId, recordType, recordId, createdAt, nextAttemptAt',
+  learnerEvents: 'id, type, occurredAt, entityId',
+});
+
+db.version(4).stores({
+  sentences: 'id, difficulty, cefrLevel, source', stories: 'id, difficulty', cards: 'id, sentenceId, type, dueDate',
+  phraseBank: 'id, category, level, priority, cardId', readingProgress: 'storyId, status, nextResurfaceAt',
   speakingSessions: 'id, scenarioId, completedAt', userStats: 'id', syncMetadata: 'key',
   contentCacheMetadata: 'key, releaseVersion, fetchedAt, source',
   syncOutbox: 'mutationId, recordType, recordId, createdAt, nextAttemptAt',

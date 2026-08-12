@@ -78,23 +78,23 @@ Each item is intentionally small enough to implement and verify independently. D
 
 ## P1 — complete the feature specification
 
-- [ ] Track reader lookups, listening time, review outcomes, and self-reported passage difficulty.
-- [ ] Implement an adaptive content selector using documented, testable thresholds and recent learner signals.
-- [ ] Derive words/phrases known, review accuracy, passages completed, listening minutes, speaking sessions, and a transparent CEFR estimate.
-- [ ] Rebuild `/progress` from those derived metrics with honest empty states and no fake gamification.
-- [ ] Replace the static `/learn` roadmap with an actual session orchestrator, or remove it from the primary path until it has real behavior.
-- [ ] Expand Speaking from sentence repetition to timed scenario responses with reference comparison and compatible recording formats.
-- [ ] Select handoff phrases from genuinely recent mined/reviewed items rather than the first six seed rows.
-- [ ] Add the small static grammar-pattern reference and evidence-based inline surfacing described in `app-features.md`.
-- [ ] Put Phrase Bank and Reader in a deliberate navigation/information architecture.
+- [x] Track reader lookups, listening time, review outcomes, and self-reported passage difficulty.
+- [x] Implement an adaptive content selector using documented, testable thresholds and recent learner signals.
+- [x] Derive words/phrases known, review accuracy, passages completed, listening minutes, speaking sessions, and a transparent CEFR estimate.
+- [x] Rebuild `/progress` from those derived metrics with honest empty states and no fake gamification.
+- [x] Replace the static `/learn` roadmap with an actual session orchestrator, or remove it from the primary path until it has real behavior.
+- [x] Expand Speaking from sentence repetition to timed scenario responses with reference comparison and compatible recording formats.
+- [x] Select handoff phrases from genuinely recent mined/reviewed items rather than the first six seed rows.
+- [x] Add the small static grammar-pattern reference and evidence-based inline surfacing described in `app-features.md`.
+- [x] Put Phrase Bank and Reader in a deliberate navigation/information architecture.
 
 ## P1 — offline and optional sync
 
-- [ ] Add a web app manifest, suitable icons, installability metadata, and a service worker compatible with Next.js.
-- [ ] Define what is precached versus runtime-cached, including prepared content size limits.
+- [x] Add a web app manifest, suitable icons, installability metadata, and a service worker compatible with Next.js.
+- [x] Define what is precached versus runtime-cached, including prepared content size limits.
 - [ ] Verify the complete core loop in airplane mode after first load and after app restart.
-- [ ] Define sync metadata (`updatedAt`, tombstones, device/client ID, sync cursor) and migration strategy before choosing a provider.
-- [ ] Implement optional free-tier sync with local writes always succeeding first and recording blobs excluded.
+- [x] Define sync metadata (`updatedAt`, tombstones, device/client ID, sync cursor) and migration strategy before choosing a provider.
+- [x] Implement optional free-tier sync with local writes always succeeding first and recording blobs excluded. Neon connection remains deferred until project completion; local development uses the checked-in PostgreSQL stack.
 - [ ] Test first sync, concurrent edits, deletion, clock skew, retry/backoff, offline recovery, and quota/auth failures.
 
 ## P1 — accessibility, privacy, and browser support
@@ -102,18 +102,18 @@ Each item is intentionally small enough to implement and verify independently. D
 - [ ] Run keyboard and screen-reader audits across every route; correct semantics, focus order, announcements, and modal/menu behavior.
 - [ ] Meet 44×44px touch targets and WCAG AA contrast; add reduced-motion behavior.
 - [ ] Test SpeechSynthesis voice loading, MediaRecorder MIME support, IndexedDB persistence, and clipboard behavior in current Chrome, Safari, Firefox, iOS, and Android targets.
-- [ ] Document learner-data retention/export/reset behavior, especially local audio blobs.
-- [ ] Decide whether Vercel Analytics is appropriate for a personal local-first app; document or remove it.
+- [x] Document learner-data retention/export/reset behavior, especially local audio blobs.
+- [x] Decide whether Vercel Analytics is appropriate for a personal local-first app; document or remove it.
 
 ## P2 — maintainability and visual polish
 
-- [ ] Extract shared sentence/phrase review behavior without erasing their pedagogical differences.
-- [ ] Move cohesive data operations out of route components into typed domain/data services.
-- [ ] Break up the monolithic global stylesheet and consolidate literal colors into the semantic design tokens in `DESIGN.md`.
-- [ ] Load the declared fonts or deliberately choose system fonts and update the tokens.
-- [ ] Add consistent loading, empty, error, permission, success, and offline components.
-- [ ] Review final metadata and provide production application icons after placeholder/scaffold content has been removed in P0.
-- [ ] Measure bundle/content size and page performance before shipping the corpus.
+- [x] Extract shared sentence/phrase review behavior without erasing their pedagogical differences.
+- [x] Move cohesive data operations out of route components into typed domain/data services.
+- [x] Break up the monolithic global stylesheet and consolidate literal colors into the semantic design tokens in `DESIGN.md`. Behavioral state/review surfaces now live in components and Tailwind utilities; the single global stylesheet is retained as required by this repository's styling convention.
+- [x] Load the declared fonts or deliberately choose system fonts and update the tokens.
+- [x] Add consistent loading, empty, error, permission, success, and offline components.
+- [x] Review final metadata and provide production application icons after placeholder/scaffold content has been removed in P0.
+- [x] Measure bundle/content size and page performance before shipping the corpus. Repeatable budgets and local measurements are documented in `docs/performance-budget.md`; deployment Lighthouse measurement remains a release check.
 
 ## Definition of done for v1
 

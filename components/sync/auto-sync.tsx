@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { db, type LearnerRecordType } from '@/data/local/database'
 
-const supportedTypes = new Set<LearnerRecordType>(['CARD', 'PHRASE', 'READING_PROGRESS', 'USER_STATS'])
+const supportedTypes = new Set<LearnerRecordType>(['CARD', 'PHRASE', 'READING_PROGRESS', 'USER_STATS', 'LEARNER_EVENT'])
 
 function deviceId() {
   const key = 'parlez_device_id'
@@ -13,7 +13,7 @@ function deviceId() {
 }
 
 function restoreDates(type: LearnerRecordType, payload: Record<string, unknown>) {
-  const fields = type === 'CARD' ? ['dueDate', 'lastReviewedAt', 'createdAt'] : type === 'READING_PROGRESS' ? ['lastSeenAt', 'nextResurfaceAt'] : []
+  const fields = type === 'CARD' ? ['dueDate', 'lastReviewedAt', 'createdAt'] : type === 'READING_PROGRESS' ? ['lastSeenAt', 'nextResurfaceAt'] : type === 'LEARNER_EVENT' ? ['occurredAt'] : []
   return Object.fromEntries(Object.entries(payload).map(([key, value]) => {
     if (!fields.includes(key) || value === null) return [key, value]
     if (typeof value !== 'string' && !(value instanceof Date)) throw new Error(`Invalid persisted date: ${key}`)
@@ -41,10 +41,10 @@ async function sync() {
   const pulled = await fetch(`/api/sync/pull?after=${encodeURIComponent(cursor)}`)
   if (!pulled.ok) return
   const result = await pulled.json() as { cursor: string; changes: Array<{ recordType: LearnerRecordType; recordId: string; payload: Record<string, unknown> | null; deletedAt: string | null }> }
-  await db.transaction('rw', [db.cards, db.phraseBank, db.readingProgress, db.userStats, db.syncMetadata], async () => {
+  await db.transaction('rw', [db.cards, db.phraseBank, db.readingProgress, db.userStats, db.learnerEvents, db.syncMetadata], async () => {
     for (const change of result.changes) {
       if (!supportedTypes.has(change.recordType)) continue
-      const table = change.recordType === 'CARD' ? db.cards : change.recordType === 'PHRASE' ? db.phraseBank : change.recordType === 'READING_PROGRESS' ? db.readingProgress : db.userStats
+      const table = change.recordType === 'CARD' ? db.cards : change.recordType === 'PHRASE' ? db.phraseBank : change.recordType === 'READING_PROGRESS' ? db.readingProgress : change.recordType === 'LEARNER_EVENT' ? db.learnerEvents : db.userStats
       if (change.deletedAt) await table.delete(change.recordId)
       else if (change.payload) await table.put(restoreDates(change.recordType, change.payload) as never)
     }

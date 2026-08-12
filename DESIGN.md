@@ -27,13 +27,13 @@ Existing supporting accents include coral (`#ef736a`), yellow (`#f3bf52`/`#f4c75
 
 ## Typography
 
-- UI sans: `Nunito Sans`, falling back to `Segoe UI`, then `sans-serif`.
-- Display serif: `Fraunces`, falling back to Georgia, then `serif`.
+- UI sans: the local system UI stack (`Segoe UI`, `system-ui`, `sans-serif`).
+- Display serif: the local serif stack (Georgia, `Times New Roman`, `serif`).
 - The serif face is reserved for brand/display moments; functional controls and body copy use the sans face.
 - Eyebrows are small, uppercase, muted, and bold.
 - French prompts and reader content should be larger and more prominent than translations.
 
-The app does not currently load Nunito Sans or Fraunces as web fonts, so fallbacks are what most users see. Font loading and typographic consistency remain quality work.
+The local font stacks are deliberate: they add no network or cache dependency and preserve full offline startup.
 
 ## Shape and elevation
 

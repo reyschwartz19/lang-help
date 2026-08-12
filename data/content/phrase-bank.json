@@ -3,210 +3,470 @@
     "id": "greet-01",
     "french": "Bonjour, comment allez-vous ?",
     "english": "Hello, how are you?",
-    "category": "greeting"
+    "category": "greeting",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "greet-02",
     "french": "Salut, ça va ?",
     "english": "Hi, how's it going?",
-    "category": "greeting"
+    "category": "greeting",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "greet-03",
     "french": "Enchanté(e) de faire votre connaissance.",
     "english": "Nice to meet you.",
-    "category": "greeting"
+    "category": "greeting",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "greet-04",
     "french": "Bonsoir, comment ça va ?",
     "english": "Good evening, how are you?",
-    "category": "greeting"
+    "category": "greeting",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "greet-05",
     "french": "Ça fait longtemps ! Comment tu vas ?",
     "english": "Long time no see! How are you?",
-    "category": "greeting"
+    "category": "greeting",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "greet-06",
     "french": "Ravi(e) de vous revoir.",
     "english": "Glad to see you again.",
-    "category": "greeting"
+    "category": "greeting",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "greet-07",
     "french": "Au revoir, à bientôt !",
     "english": "Goodbye, see you soon!",
-    "category": "greeting"
+    "category": "greeting",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "greet-08",
     "french": "Bonne journée !",
     "english": "Have a nice day!",
-    "category": "greeting"
+    "category": "greeting",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "buy-01",
     "french": "Euh… attendez, laissez-moi réfléchir.",
     "english": "Uh... wait, let me think.",
-    "category": "buying_time"
+    "category": "buying_time",
+    "level": "A2",
+    "priority": 1
   },
   {
     "id": "buy-02",
     "french": "Comment dire…",
     "english": "How should I put it...",
-    "category": "buying_time"
+    "category": "buying_time",
+    "level": "A2",
+    "priority": 1
   },
   {
     "id": "buy-03",
     "french": "En fait, c'est un peu compliqué.",
     "english": "Actually, it's a bit complicated.",
-    "category": "buying_time"
+    "category": "buying_time",
+    "level": "A2",
+    "priority": 1
   },
   {
     "id": "buy-04",
     "french": "Bonne question, je dois y penser.",
     "english": "Good question, I need to think about it.",
-    "category": "buying_time"
+    "category": "buying_time",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "buy-05",
     "french": "Alors, comment expliquer ça…",
     "english": "So, how to explain this...",
-    "category": "buying_time"
+    "category": "buying_time",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "buy-06",
     "french": "C'est-à-dire que…",
     "english": "That is to say...",
-    "category": "buying_time"
+    "category": "buying_time",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "buy-07",
     "french": "Un instant, s'il vous plaît.",
     "english": "One moment, please.",
-    "category": "buying_time"
+    "category": "buying_time",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "buy-08",
     "french": "Voyons voir…",
     "english": "Let's see...",
-    "category": "buying_time"
+    "category": "buying_time",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "repair-01",
     "french": "Pardon, vous pouvez répéter ?",
     "english": "Sorry, can you repeat that?",
-    "category": "repair"
+    "category": "repair",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "repair-02",
     "french": "Je n'ai pas compris, désolé(e).",
     "english": "I didn't understand, sorry.",
-    "category": "repair"
+    "category": "repair",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "repair-03",
     "french": "Vous pouvez parler plus lentement ?",
     "english": "Can you speak more slowly?",
-    "category": "repair"
+    "category": "repair",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "repair-04",
     "french": "Comment on dit… en français ?",
     "english": "How do you say... in French?",
-    "category": "repair"
+    "category": "repair",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "repair-05",
     "french": "Qu'est-ce que ça veut dire ?",
     "english": "What does that mean?",
-    "category": "repair"
+    "category": "repair",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "repair-06",
     "french": "Excusez-moi, je ne parle pas très bien français.",
     "english": "Excuse me, I don't speak French very well.",
-    "category": "repair"
+    "category": "repair",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "repair-07",
     "french": "Vous voulez dire que… ?",
     "english": "Do you mean that...?",
-    "category": "repair"
+    "category": "repair",
+    "level": "A2",
+    "priority": 1
   },
   {
     "id": "repair-08",
     "french": "Attendez, je cherche le mot.",
     "english": "Wait, I'm looking for the word.",
-    "category": "repair"
+    "category": "repair",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "repair-09",
     "french": "C'est pas exactement ce que je voulais dire.",
     "english": "That's not exactly what I meant.",
-    "category": "repair"
+    "category": "repair",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "opinion-01",
     "french": "À mon avis, c'est une bonne idée.",
     "english": "In my opinion, it's a good idea.",
-    "category": "opinion"
+    "category": "opinion",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "opinion-02",
     "french": "Je pense que oui.",
     "english": "I think so.",
-    "category": "opinion"
+    "category": "opinion",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "opinion-03",
     "french": "Je ne suis pas d'accord.",
     "english": "I disagree.",
-    "category": "opinion"
+    "category": "opinion",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "opinion-04",
     "french": "Ça dépend.",
     "english": "It depends.",
-    "category": "opinion"
+    "category": "opinion",
+    "level": "A1",
+    "priority": 1
   },
   {
     "id": "opinion-05",
     "french": "Je trouve que c'est intéressant.",
     "english": "I find that interesting.",
-    "category": "opinion"
+    "category": "opinion",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "opinion-06",
     "french": "C'est vrai, mais d'un autre côté…",
     "english": "That's true, but on the other hand...",
-    "category": "opinion"
+    "category": "opinion",
+    "level": "A2",
+    "priority":  3
   },
   {
     "id": "opinion-07",
     "french": "Personnellement, je préfère…",
     "english": "Personally, I prefer...",
-    "category": "opinion"
+    "category": "opinion",
+    "level": "A2",
+    "priority":  2
   },
   {
     "id": "opinion-08",
     "french": "Tu as raison, en fait.",
     "english": "You're right, actually.",
-    "category": "opinion"
+    "category": "opinion",
+    "level": "A2",
+    "priority": 1
   },
   {
     "id": "opinion-09",
     "french": "Je suis tout à fait d'accord.",
     "english": "I completely agree.",
-    "category": "opinion"
+    "category": "opinion",
+    "level": "A2",
+    "priority": 1
   },
   {
     "id": "opinion-10",
     "french": "Franchement, je ne suis pas sûr(e).",
     "english": "Honestly, I'm not sure.",
-    "category": "opinion"
-  }
+    "category": "opinion",
+    "level": "A2",
+    "priority":  2
+  },
+  {"id":"greet-09","french":"À plus tard !","english":"See you later!","category":"greeting","level":"A1","priority":1},
+  {"id":"greet-10","french":"À demain !","english":"See you tomorrow!","category":"greeting","level":"A1","priority":2},
+  {"id":"greet-11","french":"Bonne soirée !","english":"Have a good evening!","category":"greeting","level":"A1","priority":2},
+  {"id":"greet-12","french":"Passe un bon week-end !","english":"Have a good weekend!","category":"greeting","level":"A2","priority":3},
+
+  {"id":"buy-09","french":"Alors…","english":"So... / Well...","category":"buying_time","level":"A1","priority":1},
+  {"id":"buy-10","french":"Eh bien…","english":"Well...","category":"buying_time","level":"A2","priority":2},
+  {"id":"buy-11","french":"Je ne sais pas trop.","english":"I'm not really sure.","category":"buying_time","level":"A1","priority":1},
+  {"id":"buy-12","french":"Laisse-moi réfléchir.","english":"Let me think.","category":"buying_time","level":"A2","priority":1},
+  {"id":"buy-13","french":"Comment je peux dire ça ?","english":"How can I say that?","category":"buying_time","level":"A2","priority":2},
+  {"id":"buy-14","french":"Ce que je veux dire, c'est que…","english":"What I mean is...","category":"buying_time","level":"A2","priority":2},
+
+  {"id":"repair-10","french":"Tu peux répéter ?","english":"Can you repeat that?","category":"repair","level":"A1","priority":1},
+  {"id":"repair-11","french":"Tu peux parler moins vite ?","english":"Can you speak more slowly?","category":"repair","level":"A1","priority":1},
+  {"id":"repair-12","french":"Qu'est-ce que tu veux dire ?","english":"What do you mean?","category":"repair","level":"A2","priority":1},
+  {"id":"repair-13","french":"Je comprends maintenant.","english":"I understand now.","category":"repair","level":"A1","priority":1},
+  {"id":"repair-14","french":"Si j'ai bien compris…","english":"If I understood correctly...","category":"repair","level":"A2","priority":2},
+  {"id":"repair-15","french":"C'est bien ça ?","english":"Is that right?","category":"repair","level":"A1","priority":1},
+  {"id":"repair-16","french":"Tu peux me donner un exemple ?","english":"Can you give me an example?","category":"repair","level":"A2","priority":2},
+
+  {"id":"react-01","french":"D'accord.","english":"Okay.","category":"reactions","level":"A1","priority":1},
+  {"id":"react-02","french":"Je vois.","english":"I see.","category":"reactions","level":"A1","priority":1},
+  {"id":"react-03","french":"Ah bon ?","english":"Really?","category":"reactions","level":"A1","priority":1},
+  {"id":"react-04","french":"C'est vrai ?","english":"Is that true? / Really?","category":"reactions","level":"A1","priority":1},
+  {"id":"react-05","french":"Bien sûr.","english":"Of course.","category":"reactions","level":"A1","priority":1},
+  {"id":"react-06","french":"Pas de problème.","english":"No problem.","category":"reactions","level":"A1","priority":1},
+  {"id":"react-07","french":"Tant mieux !","english":"That's great!","category":"reactions","level":"A2","priority":2},
+  {"id":"react-08","french":"Quel dommage !","english":"What a shame!","category":"reactions","level":"A2","priority":2},
+  {"id":"react-09","french":"Ça alors !","english":"Wow! / Well, I never!","category":"reactions","level":"A2","priority":3},
+  {"id":"react-10","french":"C'est super !","english":"That's great!","category":"reactions","level":"A1","priority":1},
+  {"id":"react-11","french":"C'est intéressant.","english":"That's interesting.","category":"reactions","level":"A1","priority":2},
+  {"id":"react-12","french":"Je suis désolé(e) de l'apprendre.","english":"I'm sorry to hear that.","category":"reactions","level":"A2","priority":2},
+
+  {"id":"opinion-11","french":"Je pense que…","english":"I think that...","category":"opinion","level":"A1","priority":1},
+  {"id":"opinion-12","french":"Je crois que…","english":"I believe / think that...","category":"opinion","level":"A2","priority":1},
+  {"id":"opinion-13","french":"Je ne pense pas.","english":"I don't think so.","category":"opinion","level":"A1","priority":1},
+  {"id":"opinion-14","french":"Peut-être.","english":"Maybe.","category":"opinion","level":"A1","priority":1},
+  {"id":"opinion-15","french":"Je ne suis pas sûr(e).","english":"I'm not sure.","category":"opinion","level":"A1","priority":1},
+  {"id":"opinion-16","french":"Pour moi…","english":"For me...","category":"opinion","level":"A1","priority":2},
+  {"id":"opinion-17","french":"Je suis plutôt d'accord.","english":"I mostly agree.","category":"opinion","level":"A2","priority":2},
+  {"id":"opinion-18","french":"Je ne suis pas vraiment d'accord.","english":"I don't really agree.","category":"opinion","level":"A2","priority":2},
+  {"id":"opinion-19","french":"Ça me plaît.","english":"I like it.","category":"opinion","level":"A1","priority":1},
+  {"id":"opinion-20","french":"Ça ne me plaît pas trop.","english":"I don't like it very much.","category":"opinion","level":"A2","priority":2},
+  {"id":"opinion-21","french":"Je préfère…","english":"I prefer...","category":"opinion","level":"A1","priority":1},
+  {"id":"opinion-22","french":"Ça m'est égal.","english":"I don't mind / It's all the same to me.","category":"opinion","level":"A2","priority":2},
+  {"id":"opinion-23","french":"Je ne sais pas si…","english":"I don't know if...","category":"opinion","level":"A2","priority":1},
+  {"id":"opinion-24","french":"Ça dépend de…","english":"It depends on...","category":"opinion","level":"A2","priority":2},
+
+  {"id":"question-01","french":"Et toi ?","english":"And you?","category":"questions","level":"A1","priority":1},
+  {"id":"question-02","french":"Pourquoi ?","english":"Why?","category":"questions","level":"A1","priority":1},
+  {"id":"question-03","french":"Comment ça ?","english":"How so?","category":"questions","level":"A2","priority":1},
+  {"id":"question-04","french":"Qu'est-ce que tu en penses ?","english":"What do you think about it?","category":"questions","level":"A2","priority":1},
+  {"id":"question-05","french":"Et après ?","english":"And then?","category":"questions","level":"A1","priority":1},
+  {"id":"question-06","french":"Qu'est-ce qui s'est passé ?","english":"What happened?","category":"questions","level":"A2","priority":1},
+  {"id":"question-07","french":"Depuis quand ?","english":"Since when?","category":"questions","level":"A2","priority":2},
+  {"id":"question-08","french":"Avec qui ?","english":"With whom?","category":"questions","level":"A1","priority":2},
+  {"id":"question-09","french":"À quelle heure ?","english":"At what time?","category":"questions","level":"A1","priority":1},
+  {"id":"question-10","french":"Quel genre de… ?","english":"What kind of...?","category":"questions","level":"A2","priority":2},
+  {"id":"question-11","french":"Tu veux dire quoi par là ?","english":"What do you mean by that?","category":"questions","level":"A2","priority":2},
+  {"id":"question-12","french":"Tu peux m'en dire plus ?","english":"Can you tell me more?","category":"questions","level":"A2","priority":2},
+
+  {"id":"connect-01","french":"Et puis…","english":"And then / And also...","category":"connecting","level":"A1","priority":1},
+  {"id":"connect-02","french":"Mais…","english":"But...","category":"connecting","level":"A1","priority":1},
+  {"id":"connect-03","french":"Parce que…","english":"Because...","category":"connecting","level":"A1","priority":1},
+  {"id":"connect-04","french":"Donc…","english":"So / Therefore...","category":"connecting","level":"A1","priority":1},
+  {"id":"connect-05","french":"Du coup…","english":"So / As a result...","category":"connecting","level":"A2","priority":1},
+  {"id":"connect-06","french":"En fait…","english":"Actually...","category":"connecting","level":"A2","priority":1},
+  {"id":"connect-07","french":"Par exemple…","english":"For example...","category":"connecting","level":"A2","priority":1},
+  {"id":"connect-08","french":"D'abord… ensuite…","english":"First... then...","category":"connecting","level":"A2","priority":2},
+  {"id":"connect-09","french":"D'un côté… de l'autre…","english":"On one hand... on the other...","category":"connecting","level":"A2","priority":3},
+  {"id":"connect-10","french":"Le problème, c'est que…","english":"The problem is that...","category":"connecting","level":"A2","priority":1},
+  {"id":"connect-11","french":"La différence, c'est que…","english":"The difference is that...","category":"connecting","level":"A2","priority":2},
+  {"id":"connect-12","french":"C'est comme…","english":"It's like...","category":"connecting","level":"A2","priority":2},
+
+  {"id":"self-01","french":"Je m'appelle…","english":"My name is...","category":"self","level":"A1","priority":1},
+  {"id":"self-02","french":"Je viens de…","english":"I come from...","category":"self","level":"A1","priority":1},
+  {"id":"self-03","french":"J'habite à…","english":"I live in...","category":"self","level":"A1","priority":1},
+  {"id":"self-04","french":"J'ai … ans.","english":"I am ... years old.","category":"self","level":"A1","priority":1},
+  {"id":"self-05","french":"Je suis étudiant(e).","english":"I'm a student.","category":"self","level":"A1","priority":2},
+  {"id":"self-06","french":"Je travaille dans…","english":"I work in...","category":"self","level":"A1","priority":2},
+  {"id":"self-07","french":"Pendant mon temps libre…","english":"In my free time...","category":"self","level":"A2","priority":2},
+  {"id":"self-08","french":"Je m'intéresse à…","english":"I'm interested in...","category":"self","level":"A2","priority":2},
+  {"id":"self-09","french":"Je parle un peu français.","english":"I speak a little French.","category":"self","level":"A1","priority":1},
+  {"id":"self-10","french":"J'apprends le français depuis…","english":"I've been learning French for...","category":"self","level":"A2","priority":2},
+  {"id":"self-11","french":"Dans ma famille, il y a…","english":"In my family, there is / are...","category":"self","level":"A1","priority":3},
+  {"id":"self-12","french":"Ce qui est important pour moi, c'est…","english":"What's important to me is...","category":"self","level":"A2","priority":3},
+
+  {"id":"routine-01","french":"D'habitude, je…","english":"Usually, I...","category":"routines","level":"A1","priority":1},
+  {"id":"routine-02","french":"Tous les jours, je…","english":"Every day, I...","category":"routines","level":"A1","priority":1},
+  {"id":"routine-03","french":"Le week-end, je…","english":"On weekends, I...","category":"routines","level":"A1","priority":2},
+  {"id":"routine-04","french":"Je me lève à…","english":"I get up at...","category":"routines","level":"A1","priority":2},
+  {"id":"routine-05","french":"Après, je…","english":"Afterwards, I...","category":"routines","level":"A1","priority":1},
+  {"id":"routine-06","french":"Hier, j'ai…","english":"Yesterday, I...","category":"routines","level":"A2","priority":1},
+  {"id":"routine-07","french":"La semaine dernière, j'ai…","english":"Last week, I...","category":"routines","level":"A2","priority":2},
+  {"id":"routine-08","french":"C'était…","english":"It was...","category":"routines","level":"A2","priority":1},
+  {"id":"routine-09","french":"J'ai passé la journée à…","english":"I spent the day...","category":"routines","level":"A2","priority":3},
+  {"id":"routine-10","french":"J'ai l'habitude de…","english":"I'm used to... / I usually...","category":"routines","level":"A2","priority":1},
+  {"id":"routine-11","french":"Ça s'est bien passé.","english":"It went well.","category":"routines","level":"A2","priority":2},
+  {"id":"routine-12","french":"Je n'ai rien fait de spécial.","english":"I didn't do anything special.","category":"routines","level":"A2","priority":2},
+
+  {"id":"plan-01","french":"Je voudrais…","english":"I would like...","category":"plans","level":"A1","priority":1},
+  {"id":"plan-02","french":"J'ai besoin de…","english":"I need...","category":"plans","level":"A1","priority":1},
+  {"id":"plan-03","french":"J'ai envie de…","english":"I feel like / I want to...","category":"plans","level":"A2","priority":1},
+  {"id":"plan-04","french":"Je peux…","english":"I can...","category":"plans","level":"A1","priority":1},
+  {"id":"plan-05","french":"Je ne peux pas…","english":"I can't...","category":"plans","level":"A1","priority":1},
+  {"id":"plan-06","french":"Je vais…","english":"I'm going to...","category":"plans","level":"A1","priority":1},
+  {"id":"plan-07","french":"J'aimerais bien…","english":"I'd really like to...","category":"plans","level":"A2","priority":1},
+  {"id":"plan-08","french":"Je dois…","english":"I have to...","category":"plans","level":"A1","priority":1},
+  {"id":"plan-09","french":"Je n'ai pas encore décidé.","english":"I haven't decided yet.","category":"plans","level":"A2","priority":2},
+  {"id":"plan-10","french":"On verra.","english":"We'll see.","category":"plans","level":"A2","priority":2},
+  {"id":"plan-11","french":"J'espère que…","english":"I hope that...","category":"plans","level":"A2","priority":1},
+  {"id":"plan-12","french":"Mon objectif, c'est de…","english":"My goal is to...","category":"plans","level":"A2","priority":3},
+
+  {"id":"time-01","french":"En ce moment…","english":"At the moment...","category":"time_quantity","level":"A2","priority":1},
+  {"id":"time-02","french":"Aujourd'hui…","english":"Today...","category":"time_quantity","level":"A1","priority":1},
+  {"id":"time-03","french":"Demain…","english":"Tomorrow...","category":"time_quantity","level":"A1","priority":1},
+  {"id":"time-04","french":"De temps en temps…","english":"From time to time...","category":"time_quantity","level":"A2","priority":2},
+  {"id":"time-05","french":"Presque toujours.","english":"Almost always.","category":"time_quantity","level":"A2","priority":2},
+  {"id":"time-06","french":"Pas souvent.","english":"Not often.","category":"time_quantity","level":"A1","priority":2},
+  {"id":"time-07","french":"Ça prend combien de temps ?","english":"How long does it take?","category":"time_quantity","level":"A2","priority":1},
+  {"id":"time-08","french":"Il y en a beaucoup.","english":"There are a lot of them.","category":"time_quantity","level":"A2","priority":2},
+  {"id":"time-09","french":"Il n'y en a pas assez.","english":"There aren't enough.","category":"time_quantity","level":"A2","priority":3},
+  {"id":"time-10","french":"Un peu, mais pas beaucoup.","english":"A little, but not much.","category":"time_quantity","level":"A1","priority":1},
+  {"id":"time-11","french":"Ça coûte combien ?","english":"How much does it cost?","category":"time_quantity","level":"A1","priority":1},
+  {"id":"time-12","french":"Vers huit heures.","english":"Around eight o'clock.","category":"time_quantity","level":"A1","priority":2},
+
+  {"id":"request-01","french":"S'il vous plaît.","english":"Please.","category":"requests","level":"A1","priority":1},
+  {"id":"request-02","french":"Est-ce que vous pouvez m'aider ?","english":"Can you help me?","category":"requests","level":"A1","priority":1},
+  {"id":"request-03","french":"Tu peux m'aider ?","english":"Can you help me?","category":"requests","level":"A1","priority":1},
+  {"id":"request-04","french":"Est-ce que je peux… ?","english":"Can I...?","category":"requests","level":"A1","priority":1},
+  {"id":"request-05","french":"Je peux vous aider ?","english":"Can I help you?","category":"requests","level":"A1","priority":2},
+  {"id":"request-06","french":"Tu veux que je… ?","english":"Do you want me to...?","category":"requests","level":"A2","priority":2},
+  {"id":"request-07","french":"Ça vous dérange si… ?","english":"Do you mind if...?","category":"requests","level":"A2","priority":2},
+  {"id":"request-08","french":"Je peux avoir… ?","english":"Can I have...?","category":"requests","level":"A1","priority":1},
+  {"id":"request-09","french":"Vous pourriez… ?","english":"Could you...?","category":"requests","level":"A2","priority":2},
+  {"id":"request-10","french":"Avec plaisir.","english":"With pleasure.","category":"requests","level":"A1","priority":1},
+  {"id":"request-11","french":"Non merci, ça va.","english":"No thanks, I'm fine.","category":"requests","level":"A1","priority":1},
+  {"id":"request-12","french":"Je vous en prie.","english":"You're welcome / Go ahead.","category":"requests","level":"A2","priority":2},
+
+  {"id":"food-01","french":"Je voudrais commander.","english":"I'd like to order.","category":"food_shopping","level":"A1","priority":1},
+  {"id":"food-02","french":"Qu'est-ce que vous conseillez ?","english":"What do you recommend?","category":"food_shopping","level":"A2","priority":2},
+  {"id":"food-03","french":"Pour moi, ce sera…","english":"For me, it'll be...","category":"food_shopping","level":"A2","priority":2},
+  {"id":"food-04","french":"Sans …, s'il vous plaît.","english":"Without ..., please.","category":"food_shopping","level":"A1","priority":1},
+  {"id":"food-05","french":"L'addition, s'il vous plaît.","english":"The bill, please.","category":"food_shopping","level":"A1","priority":1},
+  {"id":"food-06","french":"Je peux payer par carte ?","english":"Can I pay by card?","category":"food_shopping","level":"A1","priority":1},
+  {"id":"food-07","french":"Je cherche…","english":"I'm looking for...","category":"food_shopping","level":"A1","priority":1},
+  {"id":"food-08","french":"Vous avez ça en plus grand ?","english":"Do you have this in a larger size?","category":"food_shopping","level":"A2","priority":2},
+  {"id":"food-09","french":"Je peux essayer ?","english":"Can I try it on?","category":"food_shopping","level":"A1","priority":2},
+  {"id":"food-10","french":"C'est trop cher pour moi.","english":"It's too expensive for me.","category":"food_shopping","level":"A2","priority":2},
+  {"id":"food-11","french":"Je vais prendre ça.","english":"I'll take that.","category":"food_shopping","level":"A1","priority":1},
+  {"id":"food-12","french":"C'est tout, merci.","english":"That's all, thank you.","category":"food_shopping","level":"A1","priority":1},
+
+  {"id":"transport-01","french":"Où est… ?","english":"Where is...?","category":"transport","level":"A1","priority":1},
+  {"id":"transport-02","french":"Comment aller à… ?","english":"How do I get to...?","category":"transport","level":"A1","priority":1},
+  {"id":"transport-03","french":"C'est loin d'ici ?","english":"Is it far from here?","category":"transport","level":"A1","priority":1},
+  {"id":"transport-04","french":"C'est à combien de minutes ?","english":"How many minutes away is it?","category":"transport","level":"A2","priority":2},
+  {"id":"transport-05","french":"Je dois changer où ?","english":"Where do I need to change?","category":"transport","level":"A2","priority":2},
+  {"id":"transport-06","french":"Quel bus va au centre-ville ?","english":"Which bus goes downtown?","category":"transport","level":"A1","priority":2},
+  {"id":"transport-07","french":"C'est le bon chemin ?","english":"Is this the right way?","category":"transport","level":"A1","priority":1},
+  {"id":"transport-08","french":"À gauche ou à droite ?","english":"Left or right?","category":"transport","level":"A1","priority":1},
+  {"id":"transport-09","french":"Je voudrais un aller simple.","english":"I'd like a one-way ticket.","category":"transport","level":"A2","priority":2},
+  {"id":"transport-10","french":"À quelle heure part le prochain train ?","english":"What time does the next train leave?","category":"transport","level":"A2","priority":2},
+  {"id":"transport-11","french":"Je descends au prochain arrêt.","english":"I'm getting off at the next stop.","category":"transport","level":"A2","priority":3},
+  {"id":"transport-12","french":"On est presque arrivés ?","english":"Are we almost there?","category":"transport","level":"A2","priority":2},
+
+  {"id":"work-01","french":"Qu'est-ce que tu étudies ?","english":"What are you studying?","category":"work_study","level":"A1","priority":2},
+  {"id":"work-02","french":"Tu fais quoi comme travail ?","english":"What do you do for work?","category":"work_study","level":"A2","priority":2},
+  {"id":"work-03","french":"J'ai cours à…","english":"I have class at...","category":"work_study","level":"A1","priority":2},
+  {"id":"work-04","french":"Je commence à neuf heures.","english":"I start at nine.","category":"work_study","level":"A1","priority":2},
+  {"id":"work-05","french":"Je finis vers…","english":"I finish around...","category":"work_study","level":"A1","priority":2},
+  {"id":"work-06","french":"Je travaille sur…","english":"I'm working on...","category":"work_study","level":"A2","priority":2},
+  {"id":"work-07","french":"J'ai beaucoup de travail.","english":"I have a lot of work.","category":"work_study","level":"A2","priority":2},
+  {"id":"work-08","french":"Je suis en retard.","english":"I'm late.","category":"work_study","level":"A1","priority":1},
+  {"id":"work-09","french":"Je suis disponible cet après-midi.","english":"I'm available this afternoon.","category":"work_study","level":"A2","priority":2},
+  {"id":"work-10","french":"On peut en parler demain ?","english":"Can we talk about it tomorrow?","category":"work_study","level":"A2","priority":2},
+  {"id":"work-11","french":"Je n'ai pas encore fini.","english":"I haven't finished yet.","category":"work_study","level":"A2","priority":1},
+  {"id":"work-12","french":"Ça se passe bien.","english":"It's going well.","category":"work_study","level":"A2","priority":2},
+
+  {"id":"social-01","french":"Tu fais quoi ce week-end ?","english":"What are you doing this weekend?","category":"social","level":"A1","priority":1},
+  {"id":"social-02","french":"Tu veux venir ?","english":"Do you want to come?","category":"social","level":"A1","priority":1},
+  {"id":"social-03","french":"On se retrouve où ?","english":"Where shall we meet?","category":"social","level":"A2","priority":1},
+  {"id":"social-04","french":"On se retrouve à quelle heure ?","english":"What time shall we meet?","category":"social","level":"A2","priority":1},
+  {"id":"social-05","french":"Ça te dit de… ?","english":"Do you feel like...?","category":"social","level":"A2","priority":1},
+  {"id":"social-06","french":"Bonne idée !","english":"Good idea!","category":"social","level":"A1","priority":1},
+  {"id":"social-07","french":"Pourquoi pas ?","english":"Why not?","category":"social","level":"A1","priority":1},
+  {"id":"social-08","french":"Désolé(e), je ne peux pas.","english":"Sorry, I can't.","category":"social","level":"A1","priority":1},
+  {"id":"social-09","french":"Une autre fois peut-être.","english":"Maybe another time.","category":"social","level":"A2","priority":2},
+  {"id":"social-10","french":"Je te tiens au courant.","english":"I'll keep you posted.","category":"social","level":"A2","priority":2},
+  {"id":"social-11","french":"Ça marche pour moi.","english":"That works for me.","category":"social","level":"A2","priority":1},
+  {"id":"social-12","french":"À tout à l'heure !","english":"See you shortly!","category":"social","level":"A1","priority":2}
 ]

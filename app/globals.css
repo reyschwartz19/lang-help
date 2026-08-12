@@ -13,8 +13,8 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
-  --font-sans: 'Nunito Sans', 'Segoe UI', sans-serif;
-  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Segoe UI', system-ui, sans-serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
 }
 
 :root {
@@ -29,6 +29,11 @@
   --muted-foreground: #718096;
   --border: #e5eaf2;
   --ring: #5267da;
+  --success: #24845f;
+  --danger: #b43d38;
+  --accent-coral: #ef736a;
+  --accent-yellow: #f3bf52;
+  --accent-indigo-soft: #eef0ff;
   --radius: 1.25rem;
 }
 
@@ -37,14 +42,14 @@
 }
 
 html {
-  background: #f4f7fb;
+  background: var(--background);
 }
 
 body {
   margin: 0;
-  background: #f4f7fb;
-  color: #19263c;
-  font-family: 'Nunito Sans', 'Segoe UI', sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
 button {
@@ -53,7 +58,7 @@ button {
 }
 
 button:focus-visible {
-  outline: 3px solid #f3bf52;
+  outline: 3px solid var(--accent-yellow);
   outline-offset: 3px;
 }
 
@@ -1701,3 +1706,10 @@ button:focus-visible {
     width: 100%;
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+.skip-link { position: fixed; left: 1rem; top: 1rem; z-index: 100; transform: translateY(-200%); border-radius: .75rem; background: var(--primary); color: white; padding: .75rem 1rem; }
+.skip-link:focus { transform: translateY(0); }
+button, [role="button"], .icon-button { min-height: 44px; }
