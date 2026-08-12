@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHash } from 'node:crypto'
-import { db } from "@/data/server/database";
+import { getDatabase } from "@/data/server/database";
 import { verifyPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
 import { hasTrustedOrigin } from '@/lib/auth/request-security'
@@ -14,6 +14,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid credentials." }, { status: 400 });
   }
   const normalized = username.trim().toLowerCase()
+  const db = getDatabase()
   const address = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
   const throttleKey = createHash('sha256').update(`${address}\0${normalized}`).digest('hex')
   const throttle = await db.loginThrottle.findUnique({ where: { key: throttleKey } })

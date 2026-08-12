@@ -8,13 +8,13 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const db =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    datasourceUrl: serverEnv.databaseUrl,
-    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
-  });
+export function getDatabase(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient({
+      datasourceUrl: serverEnv.databaseUrl,
+      log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+    });
+  }
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = db;
+  return globalForPrisma.prisma;
 }

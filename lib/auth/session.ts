@@ -3,7 +3,7 @@ import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { db } from "@/data/server/database";
+import { getDatabase } from "@/data/server/database";
 
 export const SESSION_COOKIE = "parlez_session";
 const SESSION_DAYS = 30;
@@ -13,6 +13,7 @@ function digest(token: string) {
 }
 
 export async function createSession(userId: string) {
+  const db = getDatabase();
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 86_400_000);
   await db.session.create({ data: { userId, tokenHash: digest(token), expiresAt } });
@@ -25,6 +26,7 @@ export async function createSession(userId: string) {
 export async function getSessionUser() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
+  const db = getDatabase();
   const session = await db.session.findUnique({
     where: { tokenHash: digest(token) },
     include: { user: { select: { id: true, username: true, displayName: true } } },
@@ -42,6 +44,6 @@ export async function requireUser() {
 export async function destroySession() {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
-  if (token) await db.session.deleteMany({ where: { tokenHash: digest(token) } });
+  if (token) await getDatabase().session.deleteMany({ where: { tokenHash: digest(token) } });
   store.delete(SESSION_COOKIE);
 }

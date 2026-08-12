@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
-import { db } from '@/data/server/database'
+import { getDatabase } from '@/data/server/database'
 import { getSessionUser } from '@/lib/auth/session'
 import { hasTrustedOrigin } from '@/lib/auth/request-security'
 
@@ -13,6 +13,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await request.json().catch(() => null) as { deviceId?: unknown; mutations?: unknown } | null
   if (!body || typeof body.deviceId !== 'string' || body.deviceId.length > 100 || !Array.isArray(body.mutations) || body.mutations.length > 500) return NextResponse.json({ error: 'Invalid sync request' }, { status: 400 })
+  const db = getDatabase()
   const deviceId = body.deviceId
   const cursor = await db.$transaction(async (tx) => {
     await tx.syncDevice.upsert({ where: { id: deviceId }, create: { id: deviceId, userId: user.id }, update: { lastSeenAt: new Date() } })

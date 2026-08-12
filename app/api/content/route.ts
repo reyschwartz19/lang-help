@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/data/server/database'
+import { getDatabase } from '@/data/server/database'
 
 export async function GET(request: Request) {
+  const db = getDatabase()
   const url = new URL(request.url)
   const limit = Math.min(Math.max(Number(url.searchParams.get('limit') ?? 10), 1), 50)
   const cursor = url.searchParams.get('cursor') ?? undefined
