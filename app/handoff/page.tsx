@@ -5,26 +5,27 @@ import { Check, Copy, MessageSquareText } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { AppShell, ScreenCard, ScreenHeading } from '@/components/layout/app-shell'
-import { db, type PhraseBank } from '@/data/local/database'
+import { db } from '@/data/local/database'
 import { buildPromptTemplate, scenarioCategories, type ScenarioCategory } from '@/lib/handoff/prompt-template'
 
 export default function HandoffPage() {
   const [selectedCategory, setSelectedCategory] = useState<ScenarioCategory>('casual')
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState<string | null>(null)
 
   const userStats = useLiveQuery(() => db.userStats.toCollection().first(), [])
-  const phraseBank = useLiveQuery(async () => {
-    return (await db.phraseBank.orderBy('category').toArray()) as PhraseBank[]
+  const practicedItems = useLiveQuery(async () => {
+    const events = await db.learnerEvents.where('type').anyOf(['sentence_mined', 'review_graded']).reverse().sortBy('occurredAt')
+    const sentenceIds = [...new Set(events.map(({ entityId }) => entityId).filter((id): id is string => Boolean(id)))].slice(0, 6)
+    const sentences = await db.sentences.where('id').anyOf(sentenceIds).toArray()
+    if (sentences.length) return sentences.map((sentence) => ({ text: sentence.targetText ?? sentence.french, type: 'sentence' as const, category: 'recent reading' }))
+    return [] as Array<{ text: string; type: 'sentence'; category: string }>
   }, [])
 
   const recentItems = useMemo(
     () =>
-      (phraseBank ?? []).slice(0, 6).map((phrase) => ({
-        text: phrase.french,
-        type: 'phrase' as const,
-        category: phrase.category,
-      })),
-    [phraseBank],
+      practicedItems ?? [],
+    [practicedItems],
   )
 
   const cefrEstimate = userStats?.cefrEstimate ?? 'A1'
@@ -39,9 +40,11 @@ export default function HandoffPage() {
         await navigator.clipboard.writeText(promptText)
       }
       setCopied(true)
+      setCopyError(null)
       window.setTimeout(() => setCopied(false), 1800)
     } catch {
       setCopied(false)
+      setCopyError('Clipboard access failed. Select the prompt text below and copy it manually.')
     }
   }
 
@@ -85,6 +88,7 @@ export default function HandoffPage() {
               {copied ? <Check size={16} /> : <Copy size={16} />}
               {copied ? 'Copied' : 'Copy prompt'}
             </button>
+            {copyError && <p role="alert" className="text-sm text-red-700">{copyError}</p>}
           </div>
         </ScreenCard>
 

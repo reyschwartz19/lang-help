@@ -1,41 +1,42 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, Bookmark, Headphones, Volume2, CheckCircle2, Turtle } from 'lucide-react'
 import Link from 'next/link'
 import { AppShell, ScreenCard } from '@/components/layout/app-shell'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, Sentence, Story, ReadingProgress } from '@/data/local/database'
 import { ensureSeeded } from '@/data/local/seed-database'
-import { playAudio } from '@/lib/audio/speech-synthesis'
+import { playAudio, stopAudio } from '@/lib/audio/speech-synthesis'
+import { putCardLocally, deleteCardLocally, putReadingProgressLocally } from '@/lib/sync/local-mutations'
+import { captureLearnerEvent } from '@/lib/learning/events'
+import { cacheAheadContent } from '@/lib/content/cache-content'
+import { advanceReadingProgress, isReadingProgressDue } from '@/lib/reader/resurfacing'
 
 export default function ReaderPage() {
   const [activeSentenceId, setActiveSentenceId] = useState<string | null>(null);
   const [spokenToggles, setSpokenToggles] = useState<Record<string, boolean>>({});
+  const [loopingSentenceId, setLoopingSentenceId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const loopRef = useRef<string | null>(null);
 
   // Seed for testing if DB is empty
   useEffect(() => {
-    ensureSeeded();
+    void ensureSeeded().then(cacheAheadContent).catch(() => setFeedback('Local content could not be opened. Reload the page to try again.'));
+    return () => stopAudio();
   }, []);
 
   const storyData = useLiveQuery(async () => {
-    const progress = await db.readingProgress.filter(p => p.status !== 'mastered').first();
+    const now = new Date();
+    const candidates = await db.readingProgress.filter(p => p.status !== 'mastered').toArray();
+    const progress = candidates.find((item) => isReadingProgressDue({ ...item, lastSeenAt: new Date(item.lastSeenAt), nextResurfaceAt: new Date(item.nextResurfaceAt) }, now));
     let story: Story | undefined;
-    let progressRec: ReadingProgress | undefined = progress;
+    const progressRec: ReadingProgress | undefined = progress;
 
     if (progress) {
       story = await db.stories.get(progress.storyId);
     } else {
-      // Just grab first story if no progress tracking
-      story = await db.stories.toCollection().first();
-      if (story) {
-        progressRec = {
-          storyId: story.id,
-          status: 'unread',
-          lastSeenAt: new Date(),
-          nextResurfaceAt: new Date()
-        };
-      }
+      return null;
     }
 
     if (!story) return null;
@@ -50,7 +51,7 @@ export default function ReaderPage() {
     return { story, progress: progressRec, sentences: orderedSentences, savedSentenceIds };
   });
 
-  if (!storyData) {
+  if (storyData === undefined) {
     return (
       <AppShell title="Reading practice" eyebrow="READING · 5 MINUTES">
         <div className="content-grid">
@@ -60,14 +61,28 @@ export default function ReaderPage() {
     );
   }
 
+  if (storyData === null) {
+    return <AppShell title="Reading practice"><ScreenCard><p className="eyebrow">NOT DUE YET</p><h2 className="mt-2 text-xl font-semibold">Your completed stories are resting.</h2><p className="screen-copy">Return when the next listen-only or reread session is due. Bundled stories remain cached offline.</p>{feedback && <p role="alert" className="mt-3 text-sm text-red-700">{feedback}</p>}</ScreenCard></AppShell>
+  }
+
   const { story, progress, sentences, savedSentenceIds } = storyData;
 
   const activeSentence = activeSentenceId ? sentences.find(s => s.id === activeSentenceId) : null;
   const isSaved = activeSentenceId ? savedSentenceIds.has(activeSentenceId) : false;
 
+  const speak = async (sentence: Sentence, rate = 1) => {
+    const text = spokenToggles[sentence.id] && sentence.spokenForm ? sentence.spokenForm : sentence.audioText;
+    setFeedback(null);
+    try {
+      await playAudio(text, rate);
+      await captureLearnerEvent('audio_played', { entityId: sentence.id });
+      if (loopRef.current === sentence.id) await speak(sentence, rate);
+    } catch (reason) { setLoopingSentenceId(null); setFeedback(reason instanceof Error ? reason.message : 'Audio playback failed.'); }
+  };
+
   const handleSentenceClick = (sentence: Sentence) => {
     setActiveSentenceId(sentence.id);
-    playAudio(spokenToggles[sentence.id] && sentence.spokenForm ? sentence.spokenForm : sentence.audioText, 1.0);
+    void speak(sentence);
   };
 
   const handleToggleSpoken = (sentenceId: string) => {
@@ -79,9 +94,9 @@ export default function ReaderPage() {
     if (isSaved) {
       // Unsaving? Just for convenience in testing.
       const card = await db.cards.where({ sentenceId: activeSentenceId }).first();
-      if (card) await db.cards.delete(card.id);
+      if (card) await deleteCardLocally(card.id);
     } else {
-      await db.cards.add({
+      await putCardLocally({
         id: crypto.randomUUID(),
         sentenceId: activeSentenceId,
         type: 'sentence',
@@ -93,35 +108,19 @@ export default function ReaderPage() {
         lastReviewedAt: null,
         createdAt: new Date()
       });
+      await captureLearnerEvent('sentence_mined', { entityId: activeSentenceId });
     }
   };
 
   const handleComplete = async () => {
     if (!progress) return;
 
-    // Story resurfacing logic (read → listen-only → reread schedule)
     const now = new Date();
-    let nextStatus = progress.status;
-    const nextResurface = new Date(now);
+    const updated = advanceReadingProgress(progress, now);
+    await putReadingProgressLocally(updated);
 
-    if (progress.status === 'unread') {
-      nextStatus = 'listen_only_due';
-      nextResurface.setDate(now.getDate() + 1); // Tomorrow
-    } else if (progress.status === 'listen_only_due') {
-      nextStatus = 'reread_due';
-      nextResurface.setDate(now.getDate() + 3); // In 3 days
-    } else if (progress.status === 'reread_due') {
-      nextStatus = 'mastered';
-    }
-
-    await db.readingProgress.put({
-      ...progress,
-      status: nextStatus,
-      lastSeenAt: now,
-      nextResurfaceAt: nextResurface
-    });
-
-    alert(`Story marked as ${nextStatus}! Resurfacing at ${nextResurface.toLocaleDateString()}`);
+    await captureLearnerEvent('story_completed', { entityId: story.id, metadata: { phase: progress.status } });
+    setFeedback(updated.status === 'mastered' ? 'Story cycle completed.' : `Session saved. This story will resurface ${updated.nextResurfaceAt.toLocaleDateString()}.`);
   };
 
   return (
@@ -171,6 +170,7 @@ export default function ReaderPage() {
                 <CheckCircle2 size={18} /> Complete Session
               </button>
             </div>
+            {feedback && <p role="status" className="mt-3 text-center text-sm text-slate-600">{feedback}</p>}
           </ScreenCard>
 
           <Link href="/" className="text-button mt-4 inline-flex items-center gap-2 text-slate-500 hover:text-slate-800">
@@ -191,17 +191,21 @@ export default function ReaderPage() {
                 <div className="flex gap-2 mt-2">
                   <button
                     className="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl transition-colors font-medium"
-                    onClick={() => playAudio(spokenToggles[activeSentence.id] && activeSentence.spokenForm ? activeSentence.spokenForm : activeSentence.audioText, 1.0)}
+                    onClick={() => void speak(activeSentence, 1)}
                   >
                     <Volume2 size={18} /> Normal
                   </button>
                   <button
                     className="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl transition-colors font-medium"
-                    onClick={() => playAudio(spokenToggles[activeSentence.id] && activeSentence.spokenForm ? activeSentence.spokenForm : activeSentence.audioText, 0.7)}
+                    onClick={() => void speak(activeSentence, 0.7)}
                   >
                     <Turtle size={18} /> Slow
                   </button>
                 </div>
+
+                {activeSentence.definition && <div className="rounded-xl border border-slate-200 p-3"><p className="eyebrow">TARGET MEANING</p><strong>{activeSentence.targetText}</strong><p className="text-sm text-slate-600">{activeSentence.definition}</p></div>}
+
+                <button className="secondary-button full" onClick={() => { if (loopRef.current) { loopRef.current = null; setLoopingSentenceId(null); stopAudio(); } else { loopRef.current = activeSentence.id; setLoopingSentenceId(activeSentence.id); void speak(activeSentence); } }}>{loopingSentenceId === activeSentence.id ? 'Stop sentence loop' : 'Loop this sentence'}</button>
 
                 <button
                   className={`mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-colors border ${isSaved ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}

@@ -9,6 +9,8 @@ import { db, type Card, type Sentence } from '@/data/local/database'
 import { ensureSeeded } from '@/data/local/seed-database'
 import { playAudio } from '@/lib/audio/speech-synthesis'
 import { applyReviewGrade, getReviewQueue, reviewGrades, type ReviewGrade } from '@/lib/review/fsrs-scheduler'
+import { putCardLocally } from '@/lib/sync/local-mutations'
+import { captureLearnerEvent } from '@/lib/learning/events'
 
 type ReviewRow = Card & { sentence: Sentence | null }
 
@@ -37,7 +39,7 @@ function AudioFirstCard({
           </div>
         ) : (
           <>
-            <h2>{sentence.french}</h2>
+            <h2 aria-label="Target phrase hidden">{sentence.targetText ? sentence.french.replace(sentence.targetText, '••••••') : 'Listen carefully. The French sentence is hidden until reveal.'}</h2>
             <p className="text-sm text-slate-500 mt-2">
               Hear it once, then say it out loud before you reveal the answer.
             </p>
@@ -74,13 +76,14 @@ function AudioFirstCard({
 export default function ReviewPage() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isRevealed, setIsRevealed] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     ensureSeeded()
   }, [])
 
   const queue = useLiveQuery(async () => {
-    const rows = await db.cards.orderBy('dueDate').toArray()
+    const rows = await db.cards.where('type').equals('sentence').toArray()
     const dueCards = getReviewQueue(rows)
 
     if (dueCards.length === 0) {
@@ -109,17 +112,22 @@ export default function ReviewPage() {
     setActiveIndex((previous) => Math.min(previous, queue.length - 1))
   }, [queue.length])
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
     if (!currentSentence) return
     const text = currentSentence.spokenForm ?? currentSentence.audioText
-    playAudio(text, isRevealed ? 1 : 0.72)
+    setError(null)
+    try { await playAudio(text, isRevealed ? 1 : 0.72); await captureLearnerEvent('audio_played', { entityId: currentSentence.id }) } catch (reason) { setError(reason instanceof Error ? reason.message : 'Audio playback failed.') }
   }
 
   const handleGrade = async (grade: ReviewGrade) => {
     if (!currentItem) return
 
     const { card: updatedCard } = applyReviewGrade(currentItem, grade)
-    await db.cards.put(updatedCard)
+    try {
+      await putCardLocally(updatedCard)
+      await captureLearnerEvent('review_graded', { entityId: currentItem.id, grade })
+      setError(null)
+    } catch { setError('Your grade could not be saved. The card remains in the queue; please try again.'); return }
 
     setIsRevealed(false)
     setActiveIndex((previous) => {
@@ -162,6 +170,7 @@ export default function ReviewPage() {
                 onPlay={handlePlay}
                 onGrade={handleGrade}
               />
+              {error && <p role="alert" className="mt-3 text-center text-sm text-red-700">{error}</p>}
             </>
           )}
         </ScreenCard>

@@ -1,10 +1,11 @@
-import { LearnerRecordType, Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import { db } from '@/data/server/database'
 import { getSessionUser } from '@/lib/auth/session'
 import { hasTrustedOrigin } from '@/lib/auth/request-security'
 
-const allowed = new Set(Object.values(LearnerRecordType))
+type LearnerRecordType = 'CARD' | 'PHRASE' | 'READING_PROGRESS' | 'USER_STATS'
+const allowed = new Set<LearnerRecordType>(['CARD', 'PHRASE', 'READING_PROGRESS', 'USER_STATS'])
 
 export async function POST(request: Request) {
   if (!hasTrustedOrigin(request)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

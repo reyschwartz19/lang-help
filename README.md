@@ -98,3 +98,8 @@ If a default port is already in use, override it, for example `POSTGRES_PORT=543
 ## Current quality assessment
 
 The strongest implemented slice is the local prototype loop: seed a small curated dataset, read a sentence, save it, review it with FSRS, practise phrases, record speech, and generate an external-chat prompt. The project is behind the original specification in production readiness, content depth, learning correctness, measurement, and verification. See `TASKS.md` for the ordered remediation plan and `app-system-design.md` for detailed gaps.
+## Local development
+
+This repository uses npm and `package-lock.json` as its single package-manager contract. Use Node.js 22, then run `npm ci`, `npm run dev`, and the verification commands `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build`.
+
+Neon migration is intentionally deferred until project completion. Local development uses the PostgreSQL service in `docker-compose.yml`; Dexie remains the browser runtime source of truth.

@@ -7,8 +7,8 @@ const initVoice = () => {
   frVoice = voices.find(v => v.lang.startsWith('fr-FR') || v.lang.startsWith('fr')) || null;
 };
 
-export const playAudio = (text: string, rate: number = 1.0) => {
-  if (typeof window === 'undefined') return;
+export const playAudio = (text: string, rate: number = 1.0): Promise<void> => new Promise((resolve, reject) => {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) { reject(new Error('Speech synthesis is unavailable in this browser.')); return }
   
   if (!synth) {
     synth = window.speechSynthesis;
@@ -26,9 +26,10 @@ export const playAudio = (text: string, rate: number = 1.0) => {
     utterance.voice = frVoice;
   }
   utterance.rate = rate; // 1.0 is normal, 0.7 for slowed down
-  
+  utterance.onend = () => resolve();
+  utterance.onerror = () => reject(new Error('Audio playback failed. Try again or check your device audio settings.'));
   synth.speak(utterance);
-};
+});
 
 export const stopAudio = () => {
   if (typeof window === 'undefined') return;

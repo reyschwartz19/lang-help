@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,18 +29,19 @@ const downloadFile = (url: string, dest: string, isBz2 = false, isTarBz2 = false
   console.log(`[Download] Fetching ${url}...`);
   if (isBz2) {
     const bz2Dest = dest + '.bz2';
-    execSync(`curl -L -o ${bz2Dest} ${url}`);
+    execFileSync('curl', ['--fail', '--location', '--retry', '3', '--output', bz2Dest, url], { stdio: 'inherit' });
+    if (fs.statSync(bz2Dest).size === 0) throw new Error(`Downloaded file is empty: ${url}`);
     console.log(`[Extract] Unzipping ${bz2Dest}...`);
-    execSync(`bzip2 -d ${bz2Dest}`);
+    execFileSync('bzip2', ['-d', bz2Dest], { stdio: 'inherit' });
   } else if (isTarBz2) {
     const tarDest = path.join(RAW_DIR, 'links.tar.bz2');
     if (!fs.existsSync(tarDest)) {
-      execSync(`curl -L -o ${tarDest} ${url}`);
+      execFileSync('curl', ['--fail', '--location', '--retry', '3', '--output', tarDest, url], { stdio: 'inherit' });
     }
     console.log(`[Extract] Un-tarring ${tarDest}...`);
-    execSync(`tar -xf ${tarDest} -C ${RAW_DIR}`);
+    execFileSync('tar', ['-xf', tarDest, '-C', RAW_DIR], { stdio: 'inherit' });
   } else {
-    execSync(`curl -L -o ${dest} ${url}`);
+    execFileSync('curl', ['--fail', '--location', '--retry', '3', '--output', dest, url], { stdio: 'inherit' });
   }
 };
 
@@ -175,4 +176,4 @@ const run = async () => {
   await processTatoeba(lex);
 };
 
-run().catch(console.error);
+run().catch((error) => { console.error(error instanceof Error ? error.message : error); process.exitCode = 1 });

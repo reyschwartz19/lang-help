@@ -6,39 +6,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { AppShell, ScreenCard, ScreenHeading } from '@/components/layout/app-shell'
 import { db, type SpeakingSession } from '@/data/local/database'
 import { playAudio } from '@/lib/audio/speech-synthesis'
-
-const scenarios = [
-  {
-    id: 'greeting',
-    prompt: 'Bonjour, comment allez-vous ?',
-    translation: 'Hello, how are you?',
-    context: 'You are meeting someone for the first time in a café.',
-  },
-  {
-    id: 'coffee',
-    prompt: 'Je voudrais un café, s’il vous plaît.',
-    translation: 'I would like a coffee, please.',
-    context: 'You are ordering at a bakery counter.',
-  },
-  {
-    id: 'weekend',
-    prompt: 'Qu’est-ce que vous faites ce week-end ?',
-    translation: 'What are you doing this weekend?',
-    context: 'You are chatting with a new friend.',
-  },
-  {
-    id: 'apology',
-    prompt: 'Je suis désolé, je ne comprends pas.',
-    translation: 'I am sorry, I do not understand.',
-    context: 'You missed part of a conversation and need to ask for clarification.',
-  },
-  {
-    id: 'opinion',
-    prompt: 'Je pense que c’est vraiment intéressant.',
-    translation: 'I think that is really interesting.',
-    context: 'You are sharing your opinion in a casual conversation.',
-  },
-] as const
+import { speakingScenarios as scenarios } from '@/data/content/scenarios'
+import { captureLearnerEvent } from '@/lib/learning/events'
 
 const ratingOptions = [
   { key: 'great', label: 'Great' },
@@ -190,6 +159,7 @@ export default function SpeakingPage() {
     }
 
     await db.speakingSessions.put(session)
+    await captureLearnerEvent('speech_completed', { entityId: session.id, durationSeconds: elapsedSeconds })
     clearRecording()
     setStatus('Saved to your session log.')
     setIndex((value) => (value + 1) % scenarios.length)
@@ -215,7 +185,7 @@ export default function SpeakingPage() {
             <span>
               Prompt {index + 1} of {scenarios.length}
             </span>
-            <span>{recording ? `${elapsedSeconds}s` : '3 min'}</span>
+            <span>{recording ? `${elapsedSeconds}s` : 'Self-paced'}</span>
           </div>
 
           <div className="prompt-card">

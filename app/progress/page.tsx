@@ -1,4 +1,17 @@
-import { Flame, Trophy, Clock3, Target } from 'lucide-react'
+'use client'
+import { BookOpen, Clock3, Mic2, Target } from 'lucide-react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { AppShell, ScreenCard, ScreenHeading } from '@/components/layout/app-shell'
-const stats = [{ label: 'Day streak', value: '5', detail: 'Best: 12', icon: Flame }, { label: 'Minutes learned', value: '84', detail: 'This week', icon: Clock3 }, { label: 'Words learned', value: '248', detail: 'Total', icon: Target }]
-export default function ProgressPage() { return <AppShell title="Your progress"><div className="screen-stack"><div className="stats-grid">{stats.map(({ label, value, detail, icon: Icon }) => <ScreenCard key={label}><Icon className="stat-icon" size={20} /><p className="eyebrow">{label}</p><strong className="stat-value">{value}</strong><span className="stat-detail">{detail}</span></ScreenCard>)}</div><ScreenCard><ScreenHeading eyebrow="THIS WEEK" title="Your learning activity" /><div className="bar-chart">{[38, 54, 72, 45, 88, 25, 12].map((height, i) => <div className="bar-column" key={i}><div className="bar" style={{height: `${height}%`}} /><span>{['M','T','W','T','F','S','S'][i]}</span></div>)}</div></ScreenCard><ScreenCard><div className="level-top"><div className="level-badge"><Trophy size={16} /></div><div><p className="eyebrow">CURRENT LEVEL</p><h3>Intermediate B1</h3></div></div><p className="screen-copy">You are building a strong everyday vocabulary. Keep practicing consistently.</p><div className="progress-track"><span style={{width:'72%'}} /></div></ScreenCard></div></AppShell> }
+import { db } from '@/data/local/database'
+import { deriveMetrics } from '@/lib/learning/events'
+
+export default function ProgressPage() {
+  const metrics = useLiveQuery(async () => deriveMetrics(await db.learnerEvents.toArray()), [])
+  const stats = [
+    { label: 'Sentences mined', value: metrics?.sentencesMined ?? 0, icon: Target },
+    { label: 'Stories completed', value: metrics?.storiesCompleted ?? 0, icon: BookOpen },
+    { label: 'Listening minutes', value: metrics?.listeningMinutes ?? 0, icon: Clock3 },
+    { label: 'Speaking sessions', value: metrics?.speakingSessions ?? 0, icon: Mic2 },
+  ]
+  return <AppShell title="Your progress"><div className="screen-stack"><div className="stats-grid">{stats.map(({ label, value, icon: Icon }) => <ScreenCard key={label}><Icon className="stat-icon" size={20} /><p className="eyebrow">{label}</p><strong className="stat-value">{value}</strong><span className="stat-detail">Saved learning events</span></ScreenCard>)}</div><ScreenCard><ScreenHeading eyebrow="REVIEW OUTCOMES" title={metrics?.reviewAccuracy === null || metrics === undefined ? 'No graded reviews yet' : `${metrics.reviewAccuracy}% successful recall`} /><p className="screen-copy">{metrics?.reviewCount ? `Based on ${metrics.reviewCount} real grades. Good and Easy count as successful recall.` : 'Complete sentence reviews to calculate accuracy. Parlez does not estimate a level or invent activity before evidence exists.'}</p></ScreenCard></div></AppShell>
+}

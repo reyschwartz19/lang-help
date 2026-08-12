@@ -1,57 +1,16 @@
 import phraseBankSeed from '@/data/content/phrase-bank.json';
 import { db } from '@/data/local/database';
+import { bundledContentRelease } from '@/lib/content/content-release';
 
 export async function ensureSeeded() {
-  const hasSeedData = (await db.sentences.count()) > 0 && (await db.phraseBank.count()) > 0;
-  if (hasSeedData) return;
-
-  const sentences = [
-    {
-      id: 's1',
-      french: "Je ne sais pas ce que c'est.",
-      english: "I don't know what it is.",
-      difficulty: 1,
-      cefrLevel: 'A1' as const,
-      source: 'curated' as const,
-      spokenForm: "Chais pas c'que c'est.",
-      audioText: "Je ne sais pas ce que c'est.",
-    },
-    {
-      id: 's2',
-      french: "Nous allons au cinéma ce soir.",
-      english: "We are going to the movies tonight.",
-      difficulty: 1,
-      cefrLevel: 'A1' as const,
-      source: 'curated' as const,
-      spokenForm: "On va au cinéma ce soir.",
-      audioText: "Nous allons au cinéma ce soir.",
-    },
-    {
-      id: 's3',
-      french: "Il n'y a pas de problème.",
-      english: "There is no problem.",
-      difficulty: 1.2,
-      cefrLevel: 'A1' as const,
-      source: 'curated' as const,
-      spokenForm: "Y a pas de problème.",
-      audioText: "Il n'y a pas de problème.",
-    },
-  ];
-
-  await db.sentences.bulkPut(sentences);
-
-  await db.stories.put({
-    id: 'story1',
-    title: 'Une petite conversation',
-    sentenceIds: ['s1', 's2', 's3'],
-    difficulty: 1.1,
-  });
-
-  await db.readingProgress.put({
-    storyId: 'story1',
-    status: 'unread',
-    lastSeenAt: new Date(),
-    nextResurfaceAt: new Date(),
+  await db.transaction('rw', db.sentences, db.stories, db.readingProgress, db.contentCacheMetadata, async () => {
+    for (const story of bundledContentRelease.stories) {
+      await db.sentences.bulkPut(story.sentences);
+      await db.stories.put({ id: story.id, title: story.title, difficulty: story.difficulty, sentenceIds: story.sentences.map((sentence) => sentence.id) });
+      const existing = await db.readingProgress.get(story.id);
+      if (!existing) await db.readingProgress.put({ storyId: story.id, status: 'unread', lastSeenAt: new Date(0), nextResurfaceAt: new Date(0) });
+    }
+    await db.contentCacheMetadata.put({ key: 'active-release', releaseVersion: bundledContentRelease.releaseVersion, fetchedAt: new Date(), source: 'bundled' });
   });
 
   const existingPhraseBank = await db.phraseBank.count();

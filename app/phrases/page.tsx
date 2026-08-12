@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, Check, Plus, Search, Volume2 } from 'lucide-react'
+import { ArrowRight, Check, Search, Volume2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 
 import { AppShell, ScreenCard, ScreenHeading } from '@/components/layout/app-shell'
@@ -186,9 +186,6 @@ export default function PhrasesPage() {
             placeholder="Search phrases"
             aria-label="Search phrases"
           />
-          <button aria-label="Add phrase">
-            <Plus size={18} />
-          </button>
         </div>
 
         <ScreenCard className="review-card">
