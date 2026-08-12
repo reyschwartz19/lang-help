@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ContentRelease {
+  id          String   @id @default(uuid())
+  version     String   @unique
+  description String?
+  releasedAt  DateTime @default(now()) @map("released_at")
+  isActive    Boolean  @default(false) @map("is_active")
+  stories     Story[]
+
+  @@map("content_releases")
+}
+
+model Story {
+  id               String          @id
+  contentReleaseId String          @map("content_release_id")
+  title            String
+  description      String?
+  difficulty       Int
+  cefrLevel        String?         @map("cefr_level")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  contentRelease   ContentRelease  @relation(fields: [contentReleaseId], references: [id], onDelete: Cascade)
+  sentences        StorySentence[]
+
+  @@index([contentReleaseId])
+  @@map("stories")
+}
+
+model Sentence {
+  id         String          @id
+  french     String
+  english    String
+  spokenForm String?         @map("spoken_form")
+  difficulty Int
+  cefrLevel  String?         @map("cefr_level")
+  grammar    Json?
+  source     String?
+  createdAt  DateTime        @default(now()) @map("created_at")
+  updatedAt  DateTime        @updatedAt @map("updated_at")
+  stories    StorySentence[]
+
+  @@map("sentences")
+}
+
+model StorySentence {
+  storyId    String   @map("story_id")
+  sentenceId String   @map("sentence_id")
+  position   Int
+  story      Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  sentence   Sentence @relation(fields: [sentenceId], references: [id], onDelete: Restrict)
+
+  @@id([storyId, sentenceId])
+  @@unique([storyId, position])
+  @@index([sentenceId])
+  @@map("story_sentences")
+}

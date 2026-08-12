@@ -1,5 +1,7 @@
 # Feature Breakdown
 
+> Product vision, not implementation status. The repository currently implements only parts of these modules. See `README.md` for the route inventory, `app-system-design.md` for as-built behavior, and `TASKS.md` for the delivery gap.
+
 Everything the app does, grouped by module. No version gating, this is the full build.
 
 ---
@@ -113,7 +115,7 @@ Everything the app does, grouped by module. No version gating, this is the full 
 **What it does:** Keeps your progress consistent across phone and desktop.
 
 - All data lives locally first (Dexie/IndexedDB) so the app works fully offline
-- A thin background sync pushes/pulls changes to Supabase whenever you're online
-- Single-user, so conflict resolution is simple: last write wins by timestamp
+- A thin background sync will push/pull changes through authenticated Next.js route handlers to Neon Postgres whenever you're online
+- Conflict handling will use stable IDs, tombstones, and a server-issued change cursor; it will not trust client timestamps alone
 
 **Why:** You use both devices regularly, this is required, but it stays in the background and never blocks the core loop from working offline.

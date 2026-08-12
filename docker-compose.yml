@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: parlez
+      POSTGRES_USER: parlez
+      POSTGRES_PASSWORD: parlez
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - parlez_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parlez -d parlez"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: sh -c "npm run db:generate && npm run db:deploy && npm run dev"
+    environment:
+      DATABASE_URL: postgresql://parlez:parlez@postgres:5432/parlez?schema=public
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      - .:/app
+      - parlez_node_modules:/app/node_modules
+      - parlez_next_cache:/app/.next
+    depends_on:
+      postgres:
+        condition: service_healthy
+    init: true
+
+volumes:
+  parlez_postgres_data:
+  parlez_node_modules:
+  parlez_next_cache:

@@ -1,227 +1,181 @@
-# System Design
+# Parlez System Design
 
----
+This document separates the as-built system from the intended production architecture. Paths and claims below reflect the repository as of August 2026.
 
-## 1. Architecture Overview
+## 1. As-built architecture
 
-```
-                    ┌─────────────────────────────┐
-                    │        Browser (PWA)        │
-                    │                              │
-                    │  React + TypeScript + Vite   │
-                    │  Tailwind CSS                │
-                    │                              │
-                    │  ┌────────────────────────┐  │
-                    │  │   App Modules          │  │
-                    │  │  Reader / Review /      │  │
-                    │  │  Phrase Bank / Drill /  │  │
-                    │  │  Dashboard / Handoff    │  │
-                    │  └───────────┬────────────┘  │
-                    │              │                │
-                    │  ┌───────────▼────────────┐  │
-                    │  │   Local Data Layer      │  │
-                    │  │   Dexie.js (IndexedDB)  │  │
-                    │  └───────────┬────────────┘  │
-                    │              │  background sync
-                    │              │  when online
-                    └──────────────┼────────────────┘
-                                   │
-                          ┌────────▼─────────┐
-                          │     Supabase      │
-                          │  Postgres + Auth   │
-                          │  (sync layer only) │
-                          └────────────────────┘
+```text
+Next.js 16 App Router (`app/`)
+        │
+        ├── route-level client components
+        ├── shared AppShell / global CSS
+        ├── browser APIs
+        │     ├── SpeechSynthesis
+        │     ├── MediaRecorder / getUserMedia
+        │     └── Clipboard
+        └── Dexie 4 (`parlez` IndexedDB)
+              ├── three curated reader sentences + one story
+              ├── bundled phrase-bank seed
+              ├── review scheduling state
+              ├── reading progress
+              └── local recording blobs
 
-    Static content bundled at build time (no runtime calls):
-    Tatoeba sentences, Lexique frequency data, curated register
-    pairs, phrase bank seed data → shipped as JSON/SQLite in the
-    app bundle, loaded into Dexie on first run.
-
-    Audio: generated live in-browser via Web Speech API,
-    nothing pre-recorded or cached.
-
-    External, manual only: ChatGPT, used outside the app via a
-    copy-pasted, app-generated prompt. No network call from the
-    app to any AI service, ever.
+Build-time-only script (manual, not in package scripts):
+Tatoeba + Lexique downloads → intended `data/content/sentences.json`
 ```
 
----
+There is now a server-only PostgreSQL foundation, but no content API consumed by the UI, authentication, sync engine, service worker, web manifest, or runtime AI integration. Vercel Analytics remains the only production-only network integration used by the browser application.
 
-## 2. Tech Stack Summary
+### Backend foundation
 
-| Layer | Choice | Why |
+Prisma defines an initial teaching catalog (`content_releases`, `stories`, `sentences`, and ordered `story_sentences`). Next.js route handlers are the database boundary; `DATABASE_URL` is validated in a server-only module and must never be exposed as a public environment variable. `/api/health/database` verifies connectivity without returning connection details.
+
+Local development uses PostgreSQL 16 and the Next.js dev server through Docker Compose. The frontend source is bind-mounted and Next.js hot reloads edits; named volumes retain database data, dependencies, and build cache. The same Prisma schema can target a free-tier Neon PostgreSQL database in deployment.
+
+This foundation does not alter Reader or Dexie. No remote content import, content delivery, learner-state schema, authentication, or synchronization has been implemented yet.
+
+## 2. Code organization
+
+```text
+./
+├── app/
+│   ├── layout.tsx              Metadata, viewport, analytics
+│   ├── globals.css             Tokens and most visual component styles
+│   ├── page.tsx                Static-heavy home dashboard
+│   ├── learn/page.tsx          Static learning-path mockup
+│   ├── reader/page.tsx         Reader and card mining
+│   ├── review/page.tsx         Sentence-card review
+│   ├── phrases/page.tsx        Phrase browsing and review
+│   ├── speaking/page.tsx       Recording and self-review
+│   ├── handoff/page.tsx        External-chat prompt generation
+│   └── progress/page.tsx       Static progress mockup
+├── components/
+│   ├── layout/app-shell.tsx    Shared navigation/layout
+│   └── ui/button.tsx           Base UI button primitive
+├── data/
+│   ├── content/                Phrase and spoken-register JSON seeds
+│   ├── local/
+│   │   ├── database.ts         Dexie schema and TypeScript entities
+│   │   └── seed-database.ts    Development-scale IndexedDB seed
+│   └── server/
+│       ├── database.ts         Server-only Prisma client
+│       └── environment.ts      Server environment validation
+├── lib/
+│   ├── audio/speech-synthesis.ts       Browser speech wrapper
+│   ├── handoff/prompt-template.ts      Pure string template
+│   ├── review/fsrs-scheduler.ts        FSRS mapping, queue, grading
+│   └── class-names.ts                  Shared class-name utility
+└── scripts/content/prepare-sentence-corpus.ts
+                                Offline corpus preparation
+```
+
+The earlier proposed `src/modules/` architecture was never adopted. Routes currently own most behavior directly. Future extraction should follow actual cohesion (review, reader, speaking, stats, sync) rather than moving files solely to match an old diagram.
+
+## 3. Local data model
+
+Dexie database name: `parlez`; schema version: `1`.
+
+| Table | Primary key / indexes | Actual role |
 |---|---|---|
-| UI framework | React + TypeScript | You already know JS/TS, strong PWA tooling support |
-| Build tool | Vite | Fast, simple PWA plugin support |
-| Styling | Tailwind CSS | Fast to build with, no design system overhead for a single-user app |
-| Local storage | Dexie.js (IndexedDB) | Primary data store, works fully offline |
-| Sync | Supabase (Postgres) | Thin sync layer only, free tier is plenty for one user |
-| Scheduling algorithm | ts-fsrs | Modern, tested spaced-repetition scheduler |
-| Audio | Web Speech API | Zero cost, zero storage, generated on demand |
-| Recording | MediaRecorder API | Built into every modern browser |
-| Hosting | Vercel or Cloudflare Pages | Free tier, auto-deploy from GitHub |
-| PWA/offline | vite-plugin-pwa (Workbox under the hood) | Installable, offline-capable |
+| `sentences` | `id`; difficulty, CEFR, source | Static sentence content currently seeded with 3 curated rows |
+| `stories` | `id`; difficulty | Ordered sentence-ID groups; currently one story |
+| `cards` | `id`; sentence ID, type, due date | Sentence and phrase review state |
+| `phraseBank` | `id`; category, card ID | Bundled conversational chunks and their card links |
+| `readingProgress` | `storyId`; status, next resurfacing | Story state transitions |
+| `speakingSessions` | `id`; scenario, completion date | Local recording blobs and optional self-rating |
+| `userStats` | `id` | Defined but not populated or derived |
 
----
+`Card.sentenceId` is polymorphic: it points to `sentences.id` for sentence cards and `phraseBank.id` for phrase cards. This works in the current queries but has no referential enforcement. FSRS state is stored as a reduced projection and reconstructed heuristically; review logs and several FSRS fields are discarded.
 
-## 3. Data Model
+## 4. Implemented flows
 
-All tables live in Dexie locally; the same shape is mirrored in Supabase for sync.
+### Reader
 
-### `sentences` (static content, shipped with the app, read-only at runtime)
-```
-id            string (uuid or Tatoeba id)
-french        string
-english       string
-difficulty    number        // derived from Lexique frequency
-source        "tatoeba" | "opensubtitles" | "curated"
-spokenForm    string | null // informal/contracted version, if one exists
-audioText     string        // text passed to Web Speech API (may differ slightly from display text)
-```
+`ensureSeeded()` inserts one curated story when sentences are absent. Reader selects the first non-mastered progress row, reads sentences in story order, synthesizes speech, reveals a sentence translation, toggles a curated spoken form, and creates/deletes a sentence card. Completion advances `unread → listen_only_due → reread_due → mastered` with 1-day and 3-day delays.
 
-### `stories` (static content, groups of sentences)
-```
-id            string
-title         string
-sentenceIds   string[]      // ordered list of sentence ids
-difficulty    number
-```
+Current limitations: selection does not enforce `nextResurfaceAt`; the final mastered transition keeps a meaningless next date; only one tiny story exists; no word/phrase definition lookup exists; no sentence loop exists; and status casting uses `any`.
 
-### `cards` (user-generated, the actual review deck)
-```
-id                string
-sentenceId        string        // references sentences.id
-type              "sentence" | "phrase"
-dueDate           datetime
-stability         number        // FSRS state
-difficulty        number        // FSRS state
-reps              number
-lapses            number
-lastReviewedAt    datetime | null
-createdAt         datetime
-```
+### Review and Phrase Bank
 
-### `phraseBank` (static seed + user-added)
-```
-id            string
-french        string
-english       string
-category      "greeting" | "buying_time" | "repair" | "opinion" | ...
-cardId        string | null   // linked cards row once it enters review
-```
+Due cards are filtered in memory and graded through `ts-fsrs`. Phrase cards are created for the full seed bank. Sentence and phrase screens duplicate much of their review UI.
 
-### `readingProgress`
-```
-storyId           string
-status            "unread" | "read" | "listen_only_due" | "reread_due" | "mastered"
-lastSeenAt        datetime
-nextResurfaceAt    datetime
-```
+Current limitations: the front of a supposed audio-first card displays the complete French answer; no target segment is silenced; phrase cards appear in the general review query but cannot join to `sentences`, producing null rows; statistics/review logs are not retained; and automated scheduler tests are absent.
 
-### `speakingSessions`
-```
-id            string
-scenarioId    string
-recordingBlob  blob (local only, not synced, too large for free-tier sync at scale)
-completedAt   datetime
+### Speaking
+
+Five in-code prompts support browser recording, immediate playback, local persistence, replay, and optional self-rating.
+
+Current limitations: this is repetition of a supplied sentence rather than an open scenario response under countdown pressure; compatibility/MIME handling is minimal; blobs have no retention policy; and no aggregate session metrics are produced.
+
+### Handoff
+
+A pure template combines a selected scenario, a CEFR fallback, and the first six phrase-bank rows, then copies the prompt to the clipboard.
+
+Current limitations: items are not recent, mined, or performance-selected; `userStats` is normally empty; and clipboard fallback/error UI is incomplete.
+
+### Home, Learn, and Progress
+
+These routes are presentational prototypes. Streaks, dates, lesson state, XP, review counts, weekly activity, word counts, and CEFR level are hard-coded and can conflict with IndexedDB.
+
+## 5. Content pipeline
+
+`scripts/content/prepare-sentence-corpus.ts` downloads French and English Tatoeba exports, their links, and Lexique 3.83; scores up to 10,000 pairs; and writes `data/content/sentences.json`.
+
+It is not integrated into the current app:
+
+- there is no `prepare-content` package script;
+- `sentences.json` is not present in the repository;
+- `seed.ts` does not import generated sentences;
+- stories are not generated from independent sentence pairs;
+- register pairs are bundled but not applied by the pipeline;
+- attribution/license output is not produced;
+- downloads and shell interpolation lack robustness and reproducibility controls.
+
+The corpus pipeline should remain a build/development tool. Runtime must consume prepared, attributable static assets without contacting content providers.
+
+## 6. Target production boundaries
+
+The intended architecture remains local-first:
+
+```text
+Prepared static content ──► browser application ──► Dexie (source of truth)
+                                      │
+                                      ├── browser speech/recording APIs
+                                      ├── service worker + app manifest
+                                      └── optional background sync
+                                                   │
+                                                   ▼
+                                          free-tier sync store
 ```
 
-### `userStats` (derived/aggregated, powers the dashboard)
-```
-wordsKnown         number
-phrasesKnown       number
-reviewAccuracy     number
-listeningMinutes   number
-storiesCompleted   number
-cefrEstimate       string   // "A2", "B1", etc, computed, not stored as ground truth
-```
+Required invariants:
 
----
+- Core reading, review, phrase, speaking, and progress flows work without a network after installation.
+- An optional sync layer mirrors learner-generated state, not static corpora or recording blobs.
+- Sync failure never blocks local writes.
+- Every mutable synced record needs stable identity, `updatedAt`, deletion semantics, and deterministic conflict handling.
+- No AI/LLM endpoint is called by application code.
+- No paid service becomes required for normal use.
 
-## 4. Key Algorithms
+Neon is the selected remote PostgreSQL target. Its free-tier limits and terms must be rechecked before deployment; local development does not depend on Neon availability.
 
-### Difficulty scoring (content leveling)
-1. At build time, tokenize each Tatoeba/OpenSubtitles sentence.
-2. Look up each word's frequency rank in the Lexique data.
-3. Score the sentence by its rarest/least-frequent words (a sentence is only as easy as its hardest word) plus overall length.
-4. Bucket into rough CEFR bands (A1, A2, B1) for initial content ordering.
-This runs once during content preparation, not live in the app.
+Future synchronization must use a server-issued monotonically increasing change cursor and explicit deletion tombstones. The older timestamp-only last-write-wins proposal is insufficient because client clocks can differ and deletions could otherwise be resurrected.
 
-### Adaptive difficulty (runtime)
-- Track lookup rate per passage (words tapped ÷ total words) and review accuracy over the last ~2 weeks of cards.
-- If lookup rate is consistently low and review accuracy is high, shift the served difficulty band up one notch.
-- If lookup rate is high or review accuracy drops, hold or shift down.
-- Simple moving-average based rule, not a model, keeps it transparent and debuggable.
+## 7. Quality gap against the product specification
 
-### Spaced repetition (FSRS)
-- Use `ts-fsrs` directly, no custom scheduler.
-- Each review submits a grade (again/hard/good/easy), the library returns the next due date and updated stability/difficulty state, stored on the `cards` row.
+| Area | Intended level | Current evidence | Gap |
+|---|---|---|---|
+| Offline/PWA | Installable and fully offline | No manifest or service worker | Critical |
+| Content | Leveled corpus and multiple passages | 3 curated sentences, 1 story | Critical |
+| Review pedagogy | Audio-first cloze recall | Full French sentence is visible | Critical |
+| Adaptive engine | Lookup/review-driven difficulty | No tracking or selection algorithm | Critical |
+| Progress | Derived, honest learner metrics | Static screens; unused stats table | High |
+| Sync | Optional cross-device background sync | Not implemented | High |
+| Reader | Definitions, looping, scheduled resurfacing | Translation-only and partial state transitions | High |
+| Testing | Regression coverage for data/algorithms/flows | No project tests | High |
+| Accessibility | Keyboard, screen reader, reduced motion, robust states | Some labels/focus styling; no audit | High |
+| Type safety | Strict TypeScript without avoidable escapes | At least one status `any`; weak cross-entity model | Medium |
+| Maintainability | Cohesive reusable modules | Large route components and duplicated review UI | Medium |
+| Observability/privacy | Explicit data/network policy | Analytics enabled without documented consent/privacy position | Medium |
 
-### Register transformation (spoken vs written)
-- A small, hand-curated static lookup table of common formal→informal patterns (ne-dropping, "il y a"→"y a", "tu es"→"t'es", etc.), applied to sentences during content preparation.
-- Not AI-generated, this keeps it deterministic and free of any runtime dependency. Expandable manually over time as you notice more patterns worth adding.
-
-### Story resurfacing schedule
-- Fixed intervals to start: read → +2 days listen-only → +7 days full reread → +30 days conversation-topic candidate.
-- Stored per-story in `readingProgress.nextResurfaceAt`, checked against current date on app load.
-
-### ChatGPT prompt generation
-- Pure string templating, no AI call: pulls your CEFR estimate, a chosen/rotating scenario, and your most recently mined phrase-bank/card entries, and fills a fixed template (as shown earlier in this conversation).
-
----
-
-## 5. Offline & Sync Strategy
-
-- **Source of truth while using the app:** always Dexie/IndexedDB, locally on-device. The app must be fully usable with no network connection.
-- **Sync trigger:** on app load and periodically while online, push any local changes since last sync, pull any remote changes since last sync.
-- **Conflict handling:** last-write-wins by timestamp. Since this is single-user across two of your own devices, true conflicts should be rare and low-stakes (e.g. a review done offline on both devices before syncing), not worth building operational-transform-level conflict resolution for.
-- **What syncs:** `cards`, `readingProgress`, `phraseBank` additions, `userStats`. Recording blobs from the speaking drill stay local-only, to avoid pushing large binary data through the free-tier sync path.
-- **Static content** (`sentences`, `stories`) is never synced, it ships with the app bundle and is identical on every device.
-
----
-
-## 6. Repository / Folder Structure
-
-```
-french-app/
-├── public/
-│   └── manifest.json, icons/            # PWA assets
-├── src/
-│   ├── modules/
-│   │   ├── reader/
-│   │   ├── review/
-│   │   ├── phrasebank/
-│   │   ├── speaking-drill/
-│   │   ├── chatgpt-handoff/
-│   │   ├── dashboard/
-│   │   └── grammar-reference/
-│   ├── data/
-│   │   ├── db.ts                        # Dexie schema/setup
-│   │   ├── sync.ts                      # Supabase sync logic
-│   │   ├── fsrs.ts                      # ts-fsrs wrapper
-│   │   └── content/                     # bundled static JSON (sentences, stories, phrase bank seed, register table)
-│   ├── lib/
-│   │   ├── difficulty.ts                # scoring + adaptive logic
-│   │   ├── audio.ts                     # Web Speech API wrapper
-│   │   └── promptTemplate.ts            # ChatGPT handoff templating
-│   ├── App.tsx
-│   └── main.tsx
-├── scripts/
-│   └── prepare-content.ts               # one-time script: ingest Tatoeba/Lexique, score difficulty, tag register pairs, output static JSON into src/data/content/
-├── supabase/
-│   └── schema.sql                       # mirrors the Dexie schema for sync tables
-├── vite.config.ts                       # includes vite-plugin-pwa config
-└── package.json
-```
-
----
-
-## 7. Build & Deploy Pipeline
-
-1. Run `scripts/prepare-content.ts` once locally to generate the static content bundle (this is the only "offline batch" step, not part of the live app).
-2. Commit the generated JSON into `src/data/content/`.
-3. Push to GitHub.
-4. Vercel/Cloudflare Pages auto-builds and deploys on push (free tier, connected directly to the repo).
-5. Supabase project holds only the sync tables, provisioned once, no ongoing maintenance beyond normal free-tier limits.
-
-No CI/CD complexity beyond "push to main, it deploys," appropriate for a single-user personal app.
+`TASKS.md` converts this assessment into an ordered remediation backlog.

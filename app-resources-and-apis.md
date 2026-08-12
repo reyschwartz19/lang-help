@@ -1,5 +1,23 @@
 # Resources, APIs & Data Sources
-Everything the app needs, all free, no paid tier required anywhere.
+
+This is the approved resource plan, with current integration status. Everything required for the core app must remain free; free-tier limits and licensing must be verified again when a resource is integrated.
+
+## Current status summary
+
+| Resource | Status in this repository |
+|---|---|
+| Tatoeba | Preparation script exists; generated output is not bundled or seeded |
+| Lexique 3.83 | Used by the preparation script only |
+| OpenSubtitles | Not integrated |
+| CEFR vocabulary reference | Not integrated |
+| SpeechSynthesis | Integrated |
+| MediaRecorder | Integrated |
+| `ts-fsrs` | Integrated, with incomplete state/log persistence and no tests |
+| Dexie | Integrated as the local learner store |
+| Neon Postgres | Prisma schema/server boundary added; hosted project and runtime content are not configured |
+| PWA/service worker | Not integrated |
+| Vercel Analytics | Integrated in production builds |
+| ChatGPT/API | No API integration; handoff is copy/paste only |
 
 ---
 
@@ -71,11 +89,12 @@ Everything the app needs, all free, no paid tier required anywhere.
 - **Purpose:** Local-first storage for all your data (mined sentences, review state, progress) directly on your device, works fully offline.
 - **Cost:** Free, open source (npm package).
 
-### Supabase (free tier)
-- **What it is:** Hosted Postgres database + auth, generous free tier.
-- **Purpose:** Thin sync layer only, so your phone and laptop stay in sync. Not the primary data store, Dexie is.
-- **Cost:** Free tier (500MB database, more than enough for single-user text data).
-- **Link:** supabase.com
+### Neon Postgres (free tier)
+- **What it is:** Hosted PostgreSQL used through server-only Next.js code. Local development uses PostgreSQL 16 in Docker through the same Prisma schema.
+- **Purpose:** Durable prepared teaching content now; authenticated learner-state synchronization later. Dexie remains the immediate runtime source of truth.
+- **Cost:** A free tier is required and its current limits must be verified before deployment.
+- **Status:** Prisma models, migration, environment boundary, and health route exist. Hosted provisioning, authentication, content import/delivery, and synchronization remain future tasks.
+- **Constraint:** Database credentials must never be exposed to browser code or use a `NEXT_PUBLIC_` environment variable.
 
 ---
 
@@ -83,19 +102,22 @@ Everything the app needs, all free, no paid tier required anywhere.
 
 | Tool | Purpose | Cost |
 |---|---|---|
-| React | UI framework | Free, open source |
+| React 19 | UI framework | Free, open source |
+| Next.js 16 | App Router, build, and development server | Free, open source |
 | TypeScript | Type safety | Free, open source |
-| Vite | Build tool / dev server | Free, open source |
-| Tailwind CSS | Styling | Free, open source |
-| vite-plugin-pwa | Turns the app into an installable, offline-capable PWA | Free, open source |
+| Tailwind CSS 4 | Styling utilities and theme integration | Free, open source |
+| Base UI / shadcn tooling | UI primitives and component tooling | Free, open source |
+| Lucide React | Icons | Free, open source |
+
+No PWA plugin or service worker is currently installed.
 
 ---
 
 ## 6. Hosting & Deployment
 
-### Vercel or Cloudflare Pages
-- **Purpose:** Hosts the built static app, free tier is more than enough for a single-user app.
-- **Cost:** Free tier, no card required.
+### Vercel or Cloudflare
+- **Purpose:** Potential hosting targets. The current Next.js configuration is not documented or verified as a fully static export.
+- **Cost:** A free tier is required; current limits and deployment compatibility must be checked before choosing a target.
 
 ### GitHub
 - **Purpose:** Version control and source of truth for the code, also connects to Vercel/Cloudflare for auto-deploy on push.
