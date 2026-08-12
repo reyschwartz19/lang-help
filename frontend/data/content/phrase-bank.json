@@ -1,0 +1,212 @@
+[
+  {
+    "id": "greet-01",
+    "french": "Bonjour, comment allez-vous ?",
+    "english": "Hello, how are you?",
+    "category": "greeting"
+  },
+  {
+    "id": "greet-02",
+    "french": "Salut, ça va ?",
+    "english": "Hi, how's it going?",
+    "category": "greeting"
+  },
+  {
+    "id": "greet-03",
+    "french": "Enchanté(e) de faire votre connaissance.",
+    "english": "Nice to meet you.",
+    "category": "greeting"
+  },
+  {
+    "id": "greet-04",
+    "french": "Bonsoir, comment ça va ?",
+    "english": "Good evening, how are you?",
+    "category": "greeting"
+  },
+  {
+    "id": "greet-05",
+    "french": "Ça fait longtemps ! Comment tu vas ?",
+    "english": "Long time no see! How are you?",
+    "category": "greeting"
+  },
+  {
+    "id": "greet-06",
+    "french": "Ravi(e) de vous revoir.",
+    "english": "Glad to see you again.",
+    "category": "greeting"
+  },
+  {
+    "id": "greet-07",
+    "french": "Au revoir, à bientôt !",
+    "english": "Goodbye, see you soon!",
+    "category": "greeting"
+  },
+  {
+    "id": "greet-08",
+    "french": "Bonne journée !",
+    "english": "Have a nice day!",
+    "category": "greeting"
+  },
+  {
+    "id": "buy-01",
+    "french": "Euh… attendez, laissez-moi réfléchir.",
+    "english": "Uh... wait, let me think.",
+    "category": "buying_time"
+  },
+  {
+    "id": "buy-02",
+    "french": "Comment dire…",
+    "english": "How should I put it...",
+    "category": "buying_time"
+  },
+  {
+    "id": "buy-03",
+    "french": "En fait, c'est un peu compliqué.",
+    "english": "Actually, it's a bit complicated.",
+    "category": "buying_time"
+  },
+  {
+    "id": "buy-04",
+    "french": "Bonne question, je dois y penser.",
+    "english": "Good question, I need to think about it.",
+    "category": "buying_time"
+  },
+  {
+    "id": "buy-05",
+    "french": "Alors, comment expliquer ça…",
+    "english": "So, how to explain this...",
+    "category": "buying_time"
+  },
+  {
+    "id": "buy-06",
+    "french": "C'est-à-dire que…",
+    "english": "That is to say...",
+    "category": "buying_time"
+  },
+  {
+    "id": "buy-07",
+    "french": "Un instant, s'il vous plaît.",
+    "english": "One moment, please.",
+    "category": "buying_time"
+  },
+  {
+    "id": "buy-08",
+    "french": "Voyons voir…",
+    "english": "Let's see...",
+    "category": "buying_time"
+  },
+  {
+    "id": "repair-01",
+    "french": "Pardon, vous pouvez répéter ?",
+    "english": "Sorry, can you repeat that?",
+    "category": "repair"
+  },
+  {
+    "id": "repair-02",
+    "french": "Je n'ai pas compris, désolé(e).",
+    "english": "I didn't understand, sorry.",
+    "category": "repair"
+  },
+  {
+    "id": "repair-03",
+    "french": "Vous pouvez parler plus lentement ?",
+    "english": "Can you speak more slowly?",
+    "category": "repair"
+  },
+  {
+    "id": "repair-04",
+    "french": "Comment on dit… en français ?",
+    "english": "How do you say... in French?",
+    "category": "repair"
+  },
+  {
+    "id": "repair-05",
+    "french": "Qu'est-ce que ça veut dire ?",
+    "english": "What does that mean?",
+    "category": "repair"
+  },
+  {
+    "id": "repair-06",
+    "french": "Excusez-moi, je ne parle pas très bien français.",
+    "english": "Excuse me, I don't speak French very well.",
+    "category": "repair"
+  },
+  {
+    "id": "repair-07",
+    "french": "Vous voulez dire que… ?",
+    "english": "Do you mean that...?",
+    "category": "repair"
+  },
+  {
+    "id": "repair-08",
+    "french": "Attendez, je cherche le mot.",
+    "english": "Wait, I'm looking for the word.",
+    "category": "repair"
+  },
+  {
+    "id": "repair-09",
+    "french": "C'est pas exactement ce que je voulais dire.",
+    "english": "That's not exactly what I meant.",
+    "category": "repair"
+  },
+  {
+    "id": "opinion-01",
+    "french": "À mon avis, c'est une bonne idée.",
+    "english": "In my opinion, it's a good idea.",
+    "category": "opinion"
+  },
+  {
+    "id": "opinion-02",
+    "french": "Je pense que oui.",
+    "english": "I think so.",
+    "category": "opinion"
+  },
+  {
+    "id": "opinion-03",
+    "french": "Je ne suis pas d'accord.",
+    "english": "I disagree.",
+    "category": "opinion"
+  },
+  {
+    "id": "opinion-04",
+    "french": "Ça dépend.",
+    "english": "It depends.",
+    "category": "opinion"
+  },
+  {
+    "id": "opinion-05",
+    "french": "Je trouve que c'est intéressant.",
+    "english": "I find that interesting.",
+    "category": "opinion"
+  },
+  {
+    "id": "opinion-06",
+    "french": "C'est vrai, mais d'un autre côté…",
+    "english": "That's true, but on the other hand...",
+    "category": "opinion"
+  },
+  {
+    "id": "opinion-07",
+    "french": "Personnellement, je préfère…",
+    "english": "Personally, I prefer...",
+    "category": "opinion"
+  },
+  {
+    "id": "opinion-08",
+    "french": "Tu as raison, en fait.",
+    "english": "You're right, actually.",
+    "category": "opinion"
+  },
+  {
+    "id": "opinion-09",
+    "french": "Je suis tout à fait d'accord.",
+    "english": "I completely agree.",
+    "category": "opinion"
+  },
+  {
+    "id": "opinion-10",
+    "french": "Franchement, je ne suis pas sûr(e).",
+    "english": "Honestly, I'm not sure.",
+    "category": "opinion"
+  }
+]
