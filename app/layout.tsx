@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { AutoSync } from '@/components/sync/auto-sync'
 
 export const metadata: Metadata = {
   title: 'parlez — Learn French at your own pace',
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" className="bg-background">
       <body className="antialiased">
         {children}
+        <AutoSync />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

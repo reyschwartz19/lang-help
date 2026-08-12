@@ -24,7 +24,7 @@ Build-time-only script (manual, not in package scripts):
 Tatoeba + Lexique downloads → intended `data/content/sentences.json`
 ```
 
-There is now a server-only PostgreSQL foundation, but no content API consumed by the UI, authentication, sync engine, service worker, web manifest, or runtime AI integration. Vercel Analytics remains the only production-only network integration used by the browser application.
+There is now a server-only PostgreSQL foundation and a user-scoped learner-state sync schema, but no content API consumed by the UI, authentication, sync engine, service worker, web manifest, or runtime AI integration. Vercel Analytics remains the only production-only network integration used by the browser application.
 
 ### Backend foundation
 
@@ -32,7 +32,7 @@ Prisma defines an initial teaching catalog (`content_releases`, `stories`, `sent
 
 Local development uses PostgreSQL 16 and the Next.js dev server through Docker Compose. The frontend source is bind-mounted and Next.js hot reloads edits; named volumes retain database data, dependencies, and build cache. The same Prisma schema can target a free-tier Neon PostgreSQL database in deployment.
 
-This foundation does not alter Reader or Dexie. No remote content import, content delivery, learner-state schema, authentication, or synchronization has been implemented yet.
+Authentication uses a seeded Neon user with a scrypt password hash and opaque database-backed sessions. The browser receives only a secure, HttpOnly session cookie; server routes derive `userId` from that session. The schema is multi-user-ready even though signup and account management are intentionally absent. Authenticated push/pull routes isolate learner records by `userId`, register devices, retain deletion tombstones, reject duplicate mutations, and expose an append-only server change sequence. Automatic Dexie outbox processing remains to be connected.
 
 ## 2. Code organization
 

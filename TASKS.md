@@ -21,16 +21,16 @@ Each item is intentionally small enough to implement and verify independently. D
 
 - [x] Add a Prisma/PostgreSQL server foundation, initial teaching-content migration, database health route, and hot-reloading Docker development stack.
 - [ ] Provision the free-tier Neon project, apply the checked-in migration, and verify `/api/health/database` against Neon in a preview deployment.
-- [ ] Add managed authentication and expose only a stable authenticated `userId` to server route handlers; do not add custom password or JWT code.
+- [x] Add seeded username/password authentication with scrypt hashes and opaque database-backed sessions; expose only the authenticated `userId` to server route handlers. No public signup flow exists yet.
 - [ ] Define and validate a prepared teaching-content import format with source attribution and deterministic content-release versions.
 - [ ] Import one prepared content release into PostgreSQL idempotently, without removing the current Dexie seed.
 - [ ] Add a read-only, paginated content route that returns release/version metadata and typed story/sentence payloads.
 - [ ] Add Dexie content-cache metadata and cache-ahead fetching while preserving offline reads and the existing Reader behavior.
 - [ ] Switch Reader selection to cached remote content only after offline/cache tests pass; retain a bundled fallback.
-- [ ] Design the remote learner-state schema with stable IDs, `userId`, server timestamps, tombstones, device IDs, and an append-only server change sequence.
+- [x] Design the remote learner-state schema with stable IDs, `userId`, server timestamps, tombstones, device IDs, and an append-only server change sequence.
 - [ ] Add Dexie `syncOutbox` and `syncMetadata` tables in a versioned local migration; local mutations must commit before enqueueing background work.
-- [ ] Implement an authenticated, transactional, idempotent `POST /api/sync/push` route and exclude recording blobs.
-- [ ] Implement an authenticated `GET /api/sync/pull?after=<cursor>` route using the server change sequence rather than client clocks.
+- [x] Implement an authenticated, transactional, idempotent `POST /api/sync/push` route and exclude recording blobs.
+- [x] Implement an authenticated `GET /api/sync/pull?after=<cursor>` route using the server change sequence rather than client clocks.
 - [ ] Define and test conflict rules, tombstone retention, retry/backoff, clock skew, concurrent-device edits, and offline recovery.
 - [ ] Add a typed `learner_events` schema and local-first event capture for real learning actions; do not invent or backfill metrics.
 - [ ] Build honest derived metrics and adaptive selection only after sufficient learner-event data and tests exist.

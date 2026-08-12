@@ -62,3 +62,116 @@ model StorySentence {
   @@index([sentenceId])
   @@map("story_sentences")
 }
+
+model User {
+  id             String          @id @default(uuid())
+  username       String          @unique
+  passwordHash   String          @map("password_hash")
+  displayName    String?         @map("display_name")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  sessions       Session[]
+  devices        SyncDevice[]
+  learnerRecords LearnerRecord[]
+  learnerChanges LearnerChange[]
+  syncMutations  SyncMutation[]
+
+  @@map("users")
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  tokenHash  String   @unique @map("token_hash")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model LoginThrottle {
+  key           String    @id
+  failures      Int       @default(0)
+  windowStarted DateTime  @default(now()) @map("window_started")
+  blockedUntil  DateTime? @map("blocked_until")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([updatedAt])
+  @@map("login_throttles")
+}
+
+enum LearnerRecordType {
+  CARD
+  PHRASE
+  READING_PROGRESS
+  USER_STATS
+
+  @@map("learner_record_type")
+}
+
+model SyncDevice {
+  id         String          @id
+  userId     String          @map("user_id")
+  createdAt  DateTime        @default(now()) @map("created_at")
+  lastSeenAt DateTime        @default(now()) @map("last_seen_at")
+  records    LearnerRecord[]
+  changes    LearnerChange[]
+  mutations  SyncMutation[]
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, id])
+  @@index([userId])
+  @@map("sync_devices")
+}
+
+model LearnerRecord {
+  userId             String            @map("user_id")
+  recordType         LearnerRecordType @map("record_type")
+  recordId           String            @map("record_id")
+  payload            Json?
+  updatedAt          DateTime          @default(now()) @map("updated_at")
+  deletedAt          DateTime?         @map("deleted_at")
+  lastDeviceId       String            @map("last_device_id")
+  lastChangeSequence BigInt            @map("last_change_sequence")
+  lastDevice         SyncDevice        @relation(fields: [userId, lastDeviceId], references: [userId, id], onDelete: Restrict)
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, recordType, recordId])
+  @@index([userId, lastChangeSequence])
+  @@index([updatedAt])
+  @@map("learner_records")
+}
+
+model LearnerChange {
+  sequence   BigInt            @id @default(autoincrement())
+  userId     String            @map("user_id")
+  recordType LearnerRecordType @map("record_type")
+  recordId   String            @map("record_id")
+  payload    Json?
+  changedAt  DateTime          @default(now()) @map("changed_at")
+  deletedAt  DateTime?         @map("deleted_at")
+  deviceId   String            @map("device_id")
+  device     SyncDevice        @relation(fields: [userId, deviceId], references: [userId, id], onDelete: Restrict)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sequence])
+  @@map("learner_changes")
+}
+
+model SyncMutation {
+  userId      String     @map("user_id")
+  mutationId  String     @map("mutation_id")
+  deviceId    String     @map("device_id")
+  processedAt DateTime   @default(now()) @map("processed_at")
+  sequence    BigInt
+  device      SyncDevice @relation(fields: [userId, deviceId], references: [userId, id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, mutationId])
+  @@index([userId, sequence])
+  @@map("sync_mutations")
+}

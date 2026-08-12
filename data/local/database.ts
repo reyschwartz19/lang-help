@@ -69,6 +69,8 @@ export interface UserStats {
   cefrEstimate: string;
 }
 
+export interface SyncMetadata { key: string; value: string }
+
 // ---------------------------------------------------------------------------
 // Database class
 // ---------------------------------------------------------------------------
@@ -81,6 +83,7 @@ const db = new Dexie('parlez') as Dexie & {
   readingProgress: EntityTable<ReadingProgress, 'storyId'>;
   speakingSessions: EntityTable<SpeakingSession, 'id'>;
   userStats: EntityTable<UserStats, 'id'>;
+  syncMetadata: EntityTable<SyncMetadata, 'key'>;
 };
 
 db.version(1).stores({
@@ -91,6 +94,12 @@ db.version(1).stores({
   readingProgress: 'storyId, status, nextResurfaceAt',
   speakingSessions: 'id, scenarioId, completedAt',
   userStats: 'id',
+});
+
+db.version(2).stores({
+  sentences: 'id, difficulty, cefrLevel, source', stories: 'id, difficulty', cards: 'id, sentenceId, type, dueDate',
+  phraseBank: 'id, category, cardId', readingProgress: 'storyId, status, nextResurfaceAt',
+  speakingSessions: 'id, scenarioId, completedAt', userStats: 'id', syncMetadata: 'key',
 });
 
 export { db };
