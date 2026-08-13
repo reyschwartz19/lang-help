@@ -8,6 +8,7 @@ out/
 # build
 dist/
 build/
+data/raw/
 
 # env files
 .env

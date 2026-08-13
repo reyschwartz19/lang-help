@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import type { LearnerChange } from '@prisma/client'
 import { getDatabase } from '@/data/server/database'
 import { getSessionUser } from '@/lib/auth/session'
 
@@ -11,5 +12,5 @@ export async function GET(request: Request) {
   const after = BigInt(raw)
   const changes = await db.learnerChange.findMany({ where: { userId: user.id, sequence: { gt: after } }, orderBy: { sequence: 'asc' }, take: 500 })
   const cursor = changes.at(-1)?.sequence ?? after
-  return NextResponse.json({ cursor: cursor.toString(), changes: changes.map(({ sequence, ...change }) => ({ ...change, sequence: sequence.toString() })) })
+  return NextResponse.json({ cursor: cursor.toString(), changes: changes.map(({ sequence, ...change }: LearnerChange) => ({ ...change, sequence: sequence.toString() })) })
 }

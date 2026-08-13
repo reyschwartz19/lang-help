@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import type { PrismaClient } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import { getDatabase } from '@/data/server/database'
 import { getSessionUser } from '@/lib/auth/session'
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   if (!body || typeof body.deviceId !== 'string' || body.deviceId.length > 100 || !Array.isArray(body.mutations) || body.mutations.length > 500) return NextResponse.json({ error: 'Invalid sync request' }, { status: 400 })
   const db = getDatabase()
   const deviceId = body.deviceId
-  const cursor = await db.$transaction(async (tx) => {
+  const cursor = await db.$transaction(async (tx: Parameters<Parameters<PrismaClient['$transaction']>[0]>[0]) => {
     await tx.syncDevice.upsert({ where: { id: deviceId }, create: { id: deviceId, userId: user.id }, update: { lastSeenAt: new Date() } })
     let latest = BigInt(0)
     for (const value of body.mutations as Array<Record<string, unknown>>) {
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         continue
       }
       const deletedAt = value.deleted ? new Date() : null
-      const payload = deletedAt ? Prisma.DbNull : value.payload as Prisma.InputJsonValue
+      const payload = deletedAt ? null : JSON.parse(JSON.stringify(value.payload ?? null))
       const change = await tx.learnerChange.create({ data: { userId: user.id, deviceId, recordId: value.recordId, recordType: value.recordType as LearnerRecordType, payload, deletedAt } })
       await tx.learnerRecord.upsert({ where: { userId_recordType_recordId: identity }, create: { ...identity, payload, deletedAt, lastDeviceId: deviceId, lastChangeSequence: change.sequence }, update: { payload, deletedAt, updatedAt: new Date(), lastDeviceId: deviceId, lastChangeSequence: change.sequence } })
       await tx.syncMutation.create({ data: { userId: user.id, mutationId: value.mutationId, deviceId, sequence: change.sequence } })

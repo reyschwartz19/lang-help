@@ -17,7 +17,7 @@ async function run() {
         await tx.storySentence.create({ data: { storyId: story.id, sentenceId: sentence.id, position } })
       }
     }
-  })
+  }, { maxWait: 10_000, timeout: 300_000 })
   console.log(`Imported ${release.releaseVersion} (${release.stories.length} stories) idempotently.`)
 }
 

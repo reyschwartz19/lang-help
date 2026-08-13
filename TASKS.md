@@ -61,9 +61,9 @@ Each item is intentionally small enough to implement and verify independently. D
 
 - [x] Add a reproducible `prepare-content` package script and document prerequisites/checksums or versions for corpus inputs.
 - [x] Harden content preparation: safe process execution, download validation, deterministic output, attribution/license metadata, and actionable failures.
-- [x] Import prepared sentence content into Dexie instead of seeding only three examples.
-- [x] Create coherent multi-sentence passages/stories; independent Tatoeba pairs alone do not satisfy the Reader specification.
-- [x] Apply curated register pairs to eligible content with reviewable transformations; do not assume blind string replacement is linguistically safe.
+- [x] Generate and bundle 10,000 attributable Tatoeba/Lexique sentence pairs, replacing the 12-sentence pilot release used by Dexie and the Reader.
+- [x] Group the generated corpus deterministically into 1,667 difficulty-matched, vocabulary-linked passages of 4-8 sentences.
+- [x] Apply the curated register-pairs table to eligible generated sentences as reviewable `spokenForm` transformations.
 - [x] Implement local definition/meaning lookup and sentence-level mining from Reader interactions.
 - [x] Add sentence looping and reliable play/stop/lifecycle controls.
 

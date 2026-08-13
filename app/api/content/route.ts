@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server'
+import type { Prisma } from '@prisma/client'
 import { getDatabase } from '@/data/server/database'
+import { bundledContentRelease } from '@/lib/content/content-release'
+
+type StoryWithSentences = Prisma.StoryGetPayload<{
+  include: { sentences: { include: { sentence: true } } }
+}>
 
 export async function GET(request: Request) {
   const db = getDatabase()
@@ -16,8 +22,8 @@ export async function GET(request: Request) {
     schemaVersion: 1,
     releaseVersion: release.version,
     releasedAt: release.releasedAt.toISOString(),
-    attribution: [{ name: 'Parlez curated teaching content', license: 'CC0-1.0', url: 'https://creativecommons.org/publicdomain/zero/1.0/' }],
-    stories: release.stories.map((story) => ({ id: story.id, title: story.title, difficulty: story.difficulty / 100, sentences: story.sentences.map(({ sentence }) => ({ ...sentence, difficulty: sentence.difficulty / 100, audioText: sentence.french, grammar: undefined, createdAt: undefined, updatedAt: undefined })) })),
+    attribution: bundledContentRelease.attribution,
+    stories: release.stories.map((story: StoryWithSentences) => ({ id: story.id, title: story.title, difficulty: story.difficulty / 100, sentences: story.sentences.map(({ sentence }: StoryWithSentences['sentences'][number]) => ({ ...sentence, difficulty: sentence.difficulty / 100, audioText: sentence.french, grammar: undefined, createdAt: undefined, updatedAt: undefined })) })),
     nextCursor: release.stories.length === limit ? release.stories.at(-1)?.id : null,
   })
 }
