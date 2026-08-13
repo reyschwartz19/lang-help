@@ -13,31 +13,38 @@ import { captureLearnerEvent } from '@/lib/learning/events'
 import { getSentenceReviewQueue } from '@/data/local/learning-service'
 import { ReviewSurface } from '@/components/review/review-surface'
 import { AsyncState } from '@/components/ui/async-state'
+import { cacheAheadContent } from '@/lib/content/cache-content'
 
 export default function ReviewPage() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isRevealed, setIsRevealed] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [contentReady, setContentReady] = useState(false)
 
   useEffect(() => {
-    ensureSeeded()
+    void ensureSeeded()
+      .then(cacheAheadContent)
+      .catch(() => setError('Review content could not be loaded. Reconnect and reload to restore synced cards.'))
+      .finally(() => setContentReady(true))
   }, [])
 
   const queue = useLiveQuery(async () => {
     return getSentenceReviewQueue()
   }, []) ?? []
+  const resolvedQueue = queue.filter((item) => item.content !== null)
+  const unresolvedCount = queue.length - resolvedQueue.length
 
-  const currentItem = queue[activeIndex] ?? null
+  const currentItem = resolvedQueue[activeIndex] ?? null
   const currentSentence = currentItem?.content ?? null
 
   useEffect(() => {
     setIsRevealed(false)
-    if (queue.length === 0) {
+    if (resolvedQueue.length === 0) {
       setActiveIndex(0)
       return
     }
-    setActiveIndex((previous) => Math.min(previous, queue.length - 1))
-  }, [queue.length])
+    setActiveIndex((previous) => Math.min(previous, resolvedQueue.length - 1))
+  }, [resolvedQueue.length])
 
   const handlePlay = async () => {
     if (!currentSentence) return
@@ -58,8 +65,8 @@ export default function ReviewPage() {
 
     setIsRevealed(false)
     setActiveIndex((previous) => {
-      if (queue.length <= 1) return 0
-      return previous + 1 >= queue.length ? 0 : previous + 1
+      if (resolvedQueue.length <= 1) return 0
+      return previous + 1 >= resolvedQueue.length ? 0 : previous + 1
     })
   }
 
@@ -67,18 +74,22 @@ export default function ReviewPage() {
     <AppShell title="Review your words">
       <div className="screen-stack">
         <ScreenCard className="review-card">
-          {!currentItem || !currentSentence ? (
+          {!contentReady ? (
+            <AsyncState kind="loading" title="Loading review content" detail="Preparing your local sentence library…" />
+          ) : unresolvedCount > 0 && resolvedQueue.length === 0 ? (
+            <AsyncState kind="error" title="Review content is unavailable" detail={`${unresolvedCount} due ${unresolvedCount === 1 ? 'card refers' : 'cards refer'} to sentence content that is not cached on this device. Reconnect and reload to restore it.`} />
+          ) : !currentItem || !currentSentence ? (
             <AsyncState kind="empty" title="No cards due yet" detail="Save a sentence from the reading flow to start your review queue." action={<Link href="/reader" className="primary-button">Open reader</Link>} />
           ) : (
             <>
               <div className="review-progress">
                 <span>
-                  Card {activeIndex + 1} of {queue.length}
+                  Card {activeIndex + 1} of {resolvedQueue.length}
                 </span>
-                <span>{Math.round(((activeIndex + 1) / queue.length) * 100)}%</span>
+                  <span>{Math.round(((activeIndex + 1) / resolvedQueue.length) * 100)}%</span>
               </div>
               <div className="progress-track">
-                <span style={{ width: `${((activeIndex + 1) / queue.length) * 100}%` }} />
+                <span style={{ width: `${((activeIndex + 1) / resolvedQueue.length) * 100}%` }} />
               </div>
 
               <ReviewSurface
@@ -98,7 +109,7 @@ export default function ReviewPage() {
 
         <ScreenHeading
           eyebrow="UP NEXT"
-          title={queue.length > 0 ? `${queue.length} cards in your queue` : 'No cards queued'}
+          title={resolvedQueue.length > 0 ? `${resolvedQueue.length} cards ready${unresolvedCount > 0 ? ` · ${unresolvedCount} restoring` : ''}` : unresolvedCount > 0 ? `${unresolvedCount} cards need content` : 'No cards queued'}
         />
       </div>
     </AppShell>

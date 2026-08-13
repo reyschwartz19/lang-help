@@ -4,8 +4,8 @@ import { getDatabase } from '@/data/server/database'
 import { getSessionUser } from '@/lib/auth/session'
 import { hasTrustedOrigin } from '@/lib/auth/request-security'
 
-type LearnerRecordType = 'CARD' | 'PHRASE' | 'READING_PROGRESS' | 'USER_STATS'
-const allowed = new Set<LearnerRecordType>(['CARD', 'PHRASE', 'READING_PROGRESS', 'USER_STATS'])
+type LearnerRecordType = 'CARD' | 'PHRASE' | 'READING_PROGRESS' | 'USER_STATS' | 'LEARNER_EVENT'
+const allowed = new Set<LearnerRecordType>(['CARD', 'PHRASE', 'READING_PROGRESS', 'USER_STATS', 'LEARNER_EVENT'])
 
 export async function POST(request: Request) {
   if (!hasTrustedOrigin(request)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

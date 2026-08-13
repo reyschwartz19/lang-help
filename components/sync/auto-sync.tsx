@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { db, type LearnerRecordType } from '@/data/local/database'
+import { SYNC_REQUESTED_EVENT } from '@/lib/sync/local-mutations'
 
 const supportedTypes = new Set<LearnerRecordType>(['CARD', 'PHRASE', 'READING_PROGRESS', 'USER_STATS', 'LEARNER_EVENT'])
 
@@ -33,8 +34,10 @@ async function sync() {
       await db.syncOutbox.bulkPut(pending.map((item) => ({ ...item, attempts: item.attempts + 1, nextAttemptAt: new Date(Date.now() + Math.min(300_000, 2 ** Math.min(item.attempts + 1, 18) * 1000)) })))
       throw new Error('Sync push failed')
     }
-    const result = await response.json() as { cursor: string }
-    await db.transaction('rw', db.syncOutbox, db.syncMetadata, async () => { await db.syncOutbox.bulkDelete(pending.map(({ mutationId }) => mutationId)); await db.syncMetadata.put({ key: 'cursor', value: result.cursor }) })
+    await response.json() as { cursor: string }
+    // A push cursor must not advance the pull cursor: doing so could skip changes
+    // made by another device between the last pull and this push.
+    await db.syncOutbox.bulkDelete(pending.map(({ mutationId }) => mutationId))
   }
 
   const cursor = (await db.syncMetadata.get('cursor'))?.value ?? '0'
@@ -53,6 +56,29 @@ async function sync() {
 }
 
 export function AutoSync() {
-  useEffect(() => { let active = true; const run = () => { if (active && navigator.onLine) void sync().catch(() => undefined) }; run(); const timer = window.setInterval(run, 30_000); window.addEventListener('online', run); return () => { active = false; clearInterval(timer); window.removeEventListener('online', run) } }, [])
+  useEffect(() => {
+    let active = true
+    let running = false
+    let rerun = false
+    const run = () => {
+      if (!active || !navigator.onLine) return
+      if (running) { rerun = true; return }
+      running = true
+      void sync().catch(() => undefined).finally(() => {
+        running = false
+        if (rerun) { rerun = false; run() }
+      })
+    }
+    run()
+    const timer = window.setInterval(run, 30_000)
+    window.addEventListener('online', run)
+    window.addEventListener(SYNC_REQUESTED_EVENT, run)
+    return () => {
+      active = false
+      clearInterval(timer)
+      window.removeEventListener('online', run)
+      window.removeEventListener(SYNC_REQUESTED_EVENT, run)
+    }
+  }, [])
   return null
 }

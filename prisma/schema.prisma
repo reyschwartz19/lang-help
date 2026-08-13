@@ -109,6 +109,7 @@ enum LearnerRecordType {
   PHRASE
   READING_PROGRESS
   USER_STATS
+  LEARNER_EVENT
 
   @@map("learner_record_type")
 }

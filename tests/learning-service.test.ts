@@ -45,3 +45,15 @@ test('services resolve content, due-session priority, and honest progress', asyn
   assert.equal(progress.phrasesKnown, 0)
   assert.equal(progress.metrics.reviewCount, 0)
 })
+
+test('a synced card resolves after bundled teaching content is restored', async () => {
+  await ensureSeeded()
+  const sentence = await db.sentences.toCollection().first()
+  assert.ok(sentence)
+  await db.sentences.clear()
+  await db.cards.put(card('synced-card', sentence.id, 'sentence', new Date(0)))
+  assert.equal((await getSentenceReviewQueue(new Date()))[0]?.content, null)
+
+  await ensureSeeded()
+  assert.equal((await getSentenceReviewQueue(new Date()))[0]?.content?.id, sentence.id)
+})

@@ -1,0 +1,1 @@
+ALTER TYPE "learner_record_type" ADD VALUE IF NOT EXISTS 'LEARNER_EVENT';
